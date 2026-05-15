@@ -1,0 +1,59 @@
+{
+  "app": {
+    "title": "中轴奇遇",
+    "subtitle": "北京中轴线文明互鉴旅行应用"
+  },
+  "nav": {
+    "home": "首页",
+    "map": "地图",
+    "culture": "文化",
+    "photoWall": "照片墙",
+    "translation": "翻译",
+    "voice": "语音助手",
+    "itinerary": "行程",
+    "community": "社区",
+    "login": "登录",
+    "register": "注册",
+    "profile": "个人中心",
+    "admin": "管理后台"
+  },
+  "home": {
+    "hero": {
+      "title": "漫步北京中轴线",
+      "subtitle": "穿越700年历史，感受中华文明的脉搏",
+      "cta": "开始探索"
+    },
+    "spots": {
+      "title": "七大核心景点",
+      "subtitle": "从永定门到钟鼓楼，纵览中轴线精华"
+    },
+    "features": {
+      "title": "探索更多",
+      "map": "地图导航",
+      "mapDesc": "高德地图精准定位",
+      "translation": "多语言翻译",
+      "translationDesc": "中英双语无障碍",
+      "voice": "语音助手",
+      "voiceDesc": "AI智能导览",
+      "culture": "文化展示",
+      "cultureDesc": "深度文化体验"
+    }
+  },
+  "spots": {
+    "viewDetail": "查看详情",
+    "history": "历史沿革",
+    "tips": "游览小贴士",
+    "location": "地理位置",
+    "tags": "标签",
+    "back": "返回"
+  },
+  "common": {
+    "loading": "加载中...",
+    "error": "出错了",
+    "retry": "重试",
+    "save": "保存",
+    "cancel": "取消",
+    "confirm": "确认",
+    "search": "搜索"
+  }
+}

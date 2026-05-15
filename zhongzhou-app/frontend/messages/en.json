@@ -1,0 +1,59 @@
+{
+  "app": {
+    "title": "Axis Odyssey",
+    "subtitle": "Beijing Central Axis Cultural Exchange Travel App"
+  },
+  "nav": {
+    "home": "Home",
+    "map": "Map",
+    "culture": "Culture",
+    "photoWall": "Photo Wall",
+    "translation": "Translation",
+    "voice": "Voice AI",
+    "itinerary": "Itinerary",
+    "community": "Community",
+    "login": "Login",
+    "register": "Register",
+    "profile": "Profile",
+    "admin": "Admin"
+  },
+  "home": {
+    "hero": {
+      "title": "Walk Beijing's Central Axis",
+      "subtitle": "700 years of history, the pulse of Chinese civilization",
+      "cta": "Start Exploring"
+    },
+    "spots": {
+      "title": "Seven Core Attractions",
+      "subtitle": "From Yongdingmen to the Drum Tower, the essence of the Axis"
+    },
+    "features": {
+      "title": "Explore More",
+      "map": "Navigation",
+      "mapDesc": "Precise AMap positioning",
+      "translation": "Translation",
+      "translationDesc": "Chinese-English bilingual",
+      "voice": "Voice AI",
+      "voiceDesc": "Smart audio guide",
+      "culture": "Culture",
+      "cultureDesc": "Deep cultural experience"
+    }
+  },
+  "spots": {
+    "viewDetail": "View Details",
+    "history": "History",
+    "tips": "Travel Tips",
+    "location": "Location",
+    "tags": "Tags",
+    "back": "Back"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Retry",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "search": "Search"
+  }
+}

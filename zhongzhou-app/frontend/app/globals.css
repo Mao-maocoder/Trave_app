@@ -1,0 +1,303 @@
+@import "tailwindcss";
+
+:root {
+  /* === 墨韵中轴 Color System === */
+  --cinnabar: #c23b22;        /* 朱砂红 — 故宫红墙 */
+  --cinnabar-deep: #8b1a1a;   /* 深朱砂 */
+  --cinnabar-light: #e8634a;  /* 浅朱砂 */
+  --ink: #1a1a1a;             /* 墨色 */
+  --ink-soft: #2d2d2d;        /* 柔墨 */
+  --rice-paper: #f5f0e8;      /* 宣纸 */
+  --rice-paper-warm: #ede5d5; /* 暖宣纸 */
+  --silk: #e8dfd0;            /* 绢帛 */
+  --jade: #5a7c6f;            /* 青玉 */
+  --jade-light: #7a9e8e;      /* 浅青玉 */
+  --gold: #c9a94e;            /* 宫廷金 */
+  --gold-light: #e0c878;      /* 浅金 */
+  --charcoal: #3a3a3a;        /* 炭色 */
+  --mist: rgba(245, 240, 232, 0.8); /* 雾气 */
+
+  --background: var(--rice-paper);
+  --foreground: var(--ink);
+  --font-display: 'Noto Serif SC', 'Playfair Display', serif;
+  --font-body: 'Noto Serif SC', Georgia, serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-cinnabar: var(--cinnabar);
+  --color-cinnabar-deep: var(--cinnabar-deep);
+  --color-cinnabar-light: var(--cinnabar-light);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-rice-paper: var(--rice-paper);
+  --color-rice-paper-warm: var(--rice-paper-warm);
+  --color-silk: var(--silk);
+  --color-jade: var(--jade);
+  --color-jade-light: var(--jade-light);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-charcoal: var(--charcoal);
+  --color-mist: var(--mist);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+}
+
+/* === Base === */
+body {
+  background: var(--rice-paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* === Ink Wash Texture Background === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(194, 59, 34, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(90, 124, 111, 0.04) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 80%, rgba(201, 169, 78, 0.03) 0%, transparent 45%);
+}
+
+/* === Scrollbar === */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--rice-paper-warm);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--cinnabar);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cinnabar-deep);
+}
+
+/* === Selection === */
+::selection {
+  background: var(--cinnabar);
+  color: white;
+}
+
+/* === Animations === */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes inkSpread {
+  from {
+    clip-path: circle(0% at 50% 50%);
+  }
+  to {
+    clip-path: circle(100% at 50% 50%);
+  }
+}
+
+@keyframes brushStroke {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes grain {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-5%, -10%); }
+  20% { transform: translate(-15%, 5%); }
+  30% { transform: translate(7%, -25%); }
+  40% { transform: translate(-5%, 25%); }
+  50% { transform: translate(-15%, 10%); }
+  60% { transform: translate(15%, 0%); }
+  70% { transform: translate(0%, 15%); }
+  80% { transform: translate(3%, 35%); }
+  90% { transform: translate(-10%, 10%); }
+}
+
+/* Utility animation classes */
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out both;
+}
+
+.animate-fade-in-left {
+  animation: fadeInLeft 0.6s ease-out both;
+}
+
+.animate-fade-in-right {
+  animation: fadeInRight 0.6s ease-out both;
+}
+
+.animate-ink-spread {
+  animation: inkSpread 1.2s ease-out forwards;
+}
+
+.animate-brush-stroke {
+  animation: brushStroke 1s ease-out forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Staggered delays */
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+.delay-600 { animation-delay: 0.6s; }
+.delay-700 { animation-delay: 0.7s; }
+.delay-800 { animation-delay: 0.8s; }
+
+/* === Ink texture overlay === */
+.ink-texture::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: 0.4;
+}
+
+/* === Brush stroke decorative line === */
+.brush-line {
+  position: relative;
+}
+.brush-line::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--cinnabar), var(--cinnabar-light), transparent);
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.brush-line:hover::after {
+  transform: scaleX(1);
+}
+
+/* === Seal stamp effect === */
+.seal-stamp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--cinnabar);
+  color: var(--cinnabar);
+  font-family: var(--font-display);
+  font-weight: 700;
+  padding: 4px 8px;
+  position: relative;
+}
+.seal-stamp::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border: 1px solid var(--cinnabar);
+  opacity: 0.3;
+  transform: rotate(1deg);
+}
+
+/* === Card hover lift === */
+.card-lift {
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.card-lift:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(194, 59, 34, 0.08);
+}
+
+/* === Gold accent border === */
+.gold-border {
+  position: relative;
+}
+.gold-border::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+/* === Vermillion gradient text === */
+.text-gradient-vermillion {
+  background: linear-gradient(135deg, var(--cinnabar-deep), var(--cinnabar), var(--cinnabar-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* === Noise grain overlay for images === */
+.grain-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
