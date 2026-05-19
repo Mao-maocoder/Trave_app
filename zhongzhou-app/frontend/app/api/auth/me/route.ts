@@ -1,45 +1,32 @@
 import { NextResponse } from "next/server";
-import db from "@/lib/db";
-import { verifyToken } from "@/lib/auth";
+import { getUserFromToken, getUserProfile } from "@/lib/auth";
 
 export async function GET(req: Request) {
+  const authHeader = req.headers.get("authorization");
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+
+  if (!token) {
+    return NextResponse.json({ error: "未登录" }, { status: 401 });
+  }
+
   try {
-    const authHeader = req.headers.get("authorization");
-    const token = authHeader?.startsWith("Bearer ")
-      ? authHeader.slice(7)
-      : null;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: "未登录" },
-        { status: 401 }
-      );
+    const authUser = await getUserFromToken(token);
+    if (!authUser) {
+      return NextResponse.json({ error: "登录已过期" }, { status: 401 });
     }
 
-    const payload = await verifyToken(token);
+    const profile = await getUserProfile(authUser.id);
 
-    const user = db
-      .prepare("SELECT id, username, email, role, avatar FROM users WHERE id = ?")
-      .get(payload.id) as {
-      id: number;
-      username: string;
-      email: string;
-      role: string;
-      avatar: string | null;
-    } | undefined;
+    const user = {
+      id: authUser.id,
+      username: profile?.username || authUser.user_metadata?.username || authUser.email?.split("@")[0],
+      email: authUser.email,
+      role: profile?.role || "user",
+      avatar: profile?.avatar || null,
+    };
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "用户不存在" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ user });
+    return NextResponse.json({ user, token });
   } catch {
-    return NextResponse.json(
-      { error: "Token 无效或已过期" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "登录已过期" }, { status: 401 });
   }
 }

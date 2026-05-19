@@ -21,17 +21,19 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative z-10 min-h-[70vh] flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+    <div className="relative z-10 flex min-h-[76vh] items-center justify-center px-4 py-14">
+      <div className="heritage-panel w-full max-w-md rounded-lg p-7 md:p-9">
         {/* Header */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-8">
           <div className="seal-stamp text-sm tracking-[0.3em] mx-auto mb-4 w-fit px-4 py-1.5">
             {locale === "zh" ? "登录" : "SIGN IN"}
           </div>
           <h1 className="font-display font-bold text-3xl text-ink tracking-wide">
             {t(locale, "nav.login")}
           </h1>
-          <div className="mt-3 mx-auto w-16 h-[2px] bg-gradient-to-r from-transparent via-cinnabar to-transparent" />
+          <p className="mt-3 text-sm leading-6 text-charcoal/50">
+            {locale === "zh" ? "回到你的中轴线旅程、收藏与打卡记录。" : "Return to your Central Axis trips, collections, and memories."}
+          </p>
         </div>
 
         {/* Form */}
@@ -50,7 +52,7 @@ export default function LoginPage() {
               type="text"
               value={username}
               onChange={(e) => { setUsername(e.target.value); clearError(); }}
-              className="w-full px-4 py-3 bg-white border border-charcoal/15 rounded-sm focus:outline-none focus:ring-2 focus:ring-cinnabar/30 focus:border-cinnabar/40 font-body text-charcoal transition-all"
+              className="w-full rounded-sm border border-charcoal/12 bg-white/72 px-4 py-3 font-body text-charcoal transition-all focus:border-cinnabar/40 focus:outline-none focus:ring-2 focus:ring-cinnabar/24"
               placeholder={locale === "zh" ? "请输入用户名" : "Enter username"}
               required
             />
@@ -64,7 +66,7 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => { setPassword(e.target.value); clearError(); }}
-              className="w-full px-4 py-3 bg-white border border-charcoal/15 rounded-sm focus:outline-none focus:ring-2 focus:ring-cinnabar/30 focus:border-cinnabar/40 font-body text-charcoal transition-all"
+              className="w-full rounded-sm border border-charcoal/12 bg-white/72 px-4 py-3 font-body text-charcoal transition-all focus:border-cinnabar/40 focus:outline-none focus:ring-2 focus:ring-cinnabar/24"
               placeholder={locale === "zh" ? "请输入密码" : "Enter password"}
               required
             />

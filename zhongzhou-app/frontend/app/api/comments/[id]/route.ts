@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import db from "@/lib/db";
-import { verifyToken } from "@/lib/auth";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getAuthUser } from "@/lib/api-helpers";
 
-// DELETE /api/comments/[id] — delete a comment
+// DELETE /api/comments/[id]
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -11,48 +11,38 @@ export async function DELETE(
     const { id } = await params;
     const commentId = parseInt(id);
 
-    const authHeader = req.headers.get("authorization");
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    const authUser = await getAuthUser(req);
+    if (!authUser) return NextResponse.json({ error: "请先登录" }, { status: 401 });
 
-    if (!token) {
-      return NextResponse.json({ error: "请先登录" }, { status: 401 });
-    }
+    const { data: comment } = await supabaseAdmin
+      .from("comments")
+      .select("id, user_id, photo_id")
+      .eq("id", commentId)
+      .single();
 
-    const payload = await verifyToken(token);
+    if (!comment) return NextResponse.json({ error: "评论不存在" }, { status: 404 });
 
-    // Find the comment and its photo owner
-    const comment = db
-      .prepare(`
-        SELECT c.id, c.user_id, c.photo_id, p.user_id AS photo_owner_id
-        FROM comments c
-        JOIN photos p ON c.photo_id = p.id
-        WHERE c.id = ?
-      `)
-      .get(commentId) as
-      | { id: number; user_id: number; photo_id: number; photo_owner_id: number }
-      | undefined;
+    const { data: photo } = await supabaseAdmin
+      .from("photos")
+      .select("user_id")
+      .eq("id", comment.photo_id)
+      .single();
 
-    if (!comment) {
-      return NextResponse.json({ error: "评论不存在" }, { status: 404 });
-    }
+    const isAuthor = comment.user_id === authUser.id;
+    const isPhotoOwner = photo?.user_id === authUser.id;
 
-    // Only comment author or photo owner can delete
-    const isCommentAuthor = comment.user_id === payload.id;
-    const isPhotoOwner = comment.photo_owner_id === payload.id;
-
-    if (!isCommentAuthor && !isPhotoOwner) {
+    if (!isAuthor && !isPhotoOwner) {
       return NextResponse.json({ error: "无权删除此评论" }, { status: 403 });
     }
 
-    // Delete comment (CASCADE will remove replies and likes)
-    db.prepare("DELETE FROM comments WHERE id = ?").run(commentId);
+    await supabaseAdmin.from("comments").delete().eq("id", commentId);
 
-    // Update photo comment count
-    const count = db
-      .prepare("SELECT COUNT(*) AS cnt FROM comments WHERE photo_id = ?")
-      .get(comment.photo_id) as { cnt: number };
+    const { count } = await supabaseAdmin
+      .from("comments")
+      .select("*", { count: "exact", head: true })
+      .eq("photo_id", comment.photo_id);
 
-    return NextResponse.json({ success: true, comment_count: count.cnt });
+    return NextResponse.json({ success: true, comment_count: count || 0 });
   } catch {
     return NextResponse.json({ error: "删除失败" }, { status: 500 });
   }

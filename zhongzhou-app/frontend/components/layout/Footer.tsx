@@ -6,11 +6,11 @@ export default function Footer() {
   const { locale } = useLocaleStore();
 
   return (
-    <footer className="relative z-[1] bg-ink text-white/40 py-16 overflow-hidden">
+    <footer className="ink-band relative z-[1] text-white/44 py-16 overflow-hidden">
       {/* Decorative background */}
       <div className="absolute inset-0">
         <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cinnabar/30 to-transparent" />
-        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-cinnabar/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/24 to-transparent" />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4">
@@ -25,7 +25,7 @@ export default function Footer() {
                 {locale === "zh" ? "中轴奇遇" : "Axis Odyssey"}
               </span>
             </div>
-            <p className="text-sm leading-relaxed font-body">
+            <p className="text-sm leading-7 font-body">
               {locale === "zh"
                 ? "北京中轴线文明互鉴旅行应用，带您穿越七百年历史，感受中华文明的脉搏。"
                 : "Beijing Central Axis cultural travel app. Walk through 700 years of history."}
@@ -43,6 +43,7 @@ export default function Footer() {
                 { href: "/map", label: locale === "zh" ? "地图" : "Map" },
                 { href: "/culture", label: locale === "zh" ? "文化" : "Culture" },
                 { href: "/photo-wall", label: locale === "zh" ? "照片墙" : "Photos" },
+                { href: "/shop", label: locale === "zh" ? "周边" : "Shop" },
               ].map((link) => (
                 <a
                   key={link.href}

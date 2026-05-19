@@ -13,7 +13,7 @@ const banners = [
     },
     image: "/images/spots/gugong.webp",
     tag: { zh: "文化体验", en: "Culture" },
-    href: "/spots/gugong",
+    href: "/spots/gugong?from=home",
   },
   {
     title: { zh: "天坛祈年殿", en: "Temple of Heaven" },
@@ -23,7 +23,7 @@ const banners = [
     },
     image: "/images/spots/tiantan.webp",
     tag: { zh: "历史古迹", en: "Historic Site" },
-    href: "/spots/tiantan",
+    href: "/spots/tiantan?from=home",
   },
   {
     title: { zh: "钟鼓楼", en: "Bell & Drum Towers" },
@@ -33,7 +33,7 @@ const banners = [
     },
     image: "/images/spots/zhonggulou.webp",
     tag: { zh: "文化地标", en: "Landmark" },
-    href: "/spots/zhonggulou",
+    href: "/spots/zhonggulou?from=home",
   },
   {
     title: { zh: "前门大街", en: "Qianmen Street" },
@@ -43,7 +43,7 @@ const banners = [
     },
     image: "/images/spots/qianmen.webp",
     tag: { zh: "民俗文化", en: "Folk Culture" },
-    href: "/spots/qianmen",
+    href: "/spots/qianmen?from=home",
   },
   {
     title: { zh: "永定门", en: "Yongdingmen" },
@@ -53,7 +53,7 @@ const banners = [
     },
     image: "/images/spots/yongdingmen.webp",
     tag: { zh: "历史地标", en: "Historic Landmark" },
-    href: "/spots/yongdingmen",
+    href: "/spots/yongdingmen?from=home",
   },
 ];
 
@@ -82,7 +82,7 @@ export default function BannerCarousel() {
   }, [next]);
 
   return (
-    <div className="relative h-[440px] overflow-hidden rounded-lg shadow-[0_8px_40px_rgba(0,0,0,0.12)]">
+    <div className="relative min-h-[560px] h-[74vh] max-h-[760px] overflow-hidden bg-ink shadow-[0_18px_60px_rgba(0,0,0,0.18)]">
       {/* Slides */}
       {banners.map((banner, index) => (
         <a
@@ -106,13 +106,14 @@ export default function BannerCarousel() {
             loading={index === 0 ? "eager" : "lazy"}
           />
           {/* Multi-layer gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/28 to-black/10" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/58 via-black/18 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-rice-paper via-rice-paper/20 to-transparent" />
           {/* Grain texture */}
           <div className="absolute inset-0 grain-overlay" />
 
           {/* Content */}
-          <div className="absolute bottom-8 left-8 right-8 z-10">
+          <div className="absolute left-5 right-5 bottom-14 z-10 md:left-12 md:bottom-20 lg:left-[8vw]">
             {/* Tag — seal stamp style */}
             <div
               className={`inline-block mb-4 transition-all duration-700 delay-200 ${
@@ -128,7 +129,7 @@ export default function BannerCarousel() {
 
             {/* Title */}
             <h2
-              className={`font-display font-bold text-5xl text-white mb-3 tracking-wide transition-all duration-700 delay-300 ${
+              className={`font-display font-bold text-4xl text-white mb-4 tracking-wide drop-shadow-lg transition-all duration-700 delay-300 md:text-6xl lg:text-7xl ${
                 index === current
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-6"
@@ -139,7 +140,7 @@ export default function BannerCarousel() {
 
             {/* Subtitle */}
             <p
-              className={`text-white/70 text-sm md:text-base font-body max-w-lg transition-all duration-700 delay-400 ${
+              className={`text-white/76 text-base md:text-lg font-body max-w-xl leading-8 transition-all duration-700 delay-400 ${
                 index === current
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-6"
@@ -150,23 +151,46 @@ export default function BannerCarousel() {
 
             {/* Decorative brush line */}
             <div
-              className={`mt-4 h-[2px] bg-gradient-to-r from-cinnabar via-gold to-transparent transition-all duration-1000 delay-500 ${
-                index === current ? "w-24 opacity-100" : "w-0 opacity-0"
+              className={`mt-6 h-[2px] bg-gradient-to-r from-cinnabar via-gold to-transparent transition-all duration-1000 delay-500 ${
+                index === current ? "w-36 opacity-100" : "w-0 opacity-0"
               }`}
             />
+
+            <div
+              className={`mt-8 flex flex-wrap items-center gap-3 transition-all duration-700 delay-500 ${
+                index === current
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-5"
+              }`}
+            >
+              <span className="paper-surface rounded-sm px-4 py-2 text-xs font-display tracking-widest text-cinnabar">
+                {locale === "zh" ? "开始探索" : "Start Exploring"}
+              </span>
+              <span className="text-sm text-white/62">
+                {locale === "zh" ? "沿 7.8 公里中轴线展开旅程" : "Follow the 7.8 km Central Axis"}
+              </span>
+            </div>
           </div>
         </a>
       ))}
 
+      <div className="pointer-events-none absolute left-5 top-24 z-20 hidden h-[54%] flex-col items-center justify-between md:flex">
+        <span className="h-14 w-px bg-gradient-to-b from-transparent to-white/40" />
+        <span className="rotate-180 text-[10px] font-display tracking-[0.42em] text-white/52 [writing-mode:vertical-rl]">
+          CENTRAL AXIS
+        </span>
+        <span className="h-14 w-px bg-gradient-to-t from-transparent to-gold/60" />
+      </div>
+
       {/* Page Indicator — top right */}
-      <div className="absolute top-4 right-4 z-20 px-4 py-1.5 bg-black/40 backdrop-blur-sm rounded-sm border border-white/10">
+      <div className="absolute top-5 right-5 z-20 px-4 py-2 bg-black/34 backdrop-blur-md rounded-sm border border-white/12">
         <span className="text-white/90 text-xs font-display tracking-widest">
           {String(current + 1).padStart(2, "0")} / {String(banners.length).padStart(2, "0")}
         </span>
       </div>
 
       {/* Dots — bottom center */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-3">
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-3">
         {banners.map((_, index) => (
           <button
             key={index}
@@ -183,13 +207,13 @@ export default function BannerCarousel() {
       {/* Navigation arrows */}
       <button
         onClick={() => goTo((current - 1 + banners.length) % banners.length)}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center bg-black/20 hover:bg-black/40 backdrop-blur-sm text-white/70 hover:text-white rounded-full transition-all duration-300 border border-white/10"
+        className="absolute left-4 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-sm border border-white/12 bg-black/22 text-2xl text-white/70 backdrop-blur-md transition-all duration-300 hover:bg-black/42 hover:text-white md:flex"
       >
         ‹
       </button>
       <button
         onClick={next}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center bg-black/20 hover:bg-black/40 backdrop-blur-sm text-white/70 hover:text-white rounded-full transition-all duration-300 border border-white/10"
+        className="absolute right-4 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-sm border border-white/12 bg-black/22 text-2xl text-white/70 backdrop-blur-md transition-all duration-300 hover:bg-black/42 hover:text-white md:flex"
       >
         ›
       </button>

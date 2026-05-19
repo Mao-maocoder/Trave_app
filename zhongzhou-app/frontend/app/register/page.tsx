@@ -14,25 +14,28 @@ export default function RegisterPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"user" | "admin" | "guide">("user");
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const ok = await register(username, email, password);
+    const ok = await register(username, email, password, role);
     if (ok) router.push("/profile");
   };
 
   return (
-    <div className="relative z-10 min-h-[70vh] flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+    <div className="relative z-10 flex min-h-[76vh] items-center justify-center px-4 py-14">
+      <div className="heritage-panel w-full max-w-md rounded-lg p-7 md:p-9">
         {/* Header */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-8">
           <div className="seal-stamp text-sm tracking-[0.3em] mx-auto mb-4 w-fit px-4 py-1.5">
             {locale === "zh" ? "注册" : "SIGN UP"}
           </div>
           <h1 className="font-display font-bold text-3xl text-ink tracking-wide">
             {t(locale, "nav.register")}
           </h1>
-          <div className="mt-3 mx-auto w-16 h-[2px] bg-gradient-to-r from-transparent via-cinnabar to-transparent" />
+          <p className="mt-3 text-sm leading-6 text-charcoal/50">
+            {locale === "zh" ? "创建账号，开始记录你的中轴线探索。" : "Create an account and start recording your Axis journey."}
+          </p>
         </div>
 
         {/* Form */}
@@ -51,7 +54,7 @@ export default function RegisterPage() {
               type="text"
               value={username}
               onChange={(e) => { setUsername(e.target.value); clearError(); }}
-              className="w-full px-4 py-3 bg-white border border-charcoal/15 rounded-sm focus:outline-none focus:ring-2 focus:ring-cinnabar/30 focus:border-cinnabar/40 font-body text-charcoal transition-all"
+              className="w-full rounded-sm border border-charcoal/12 bg-white/72 px-4 py-3 font-body text-charcoal transition-all focus:border-cinnabar/40 focus:outline-none focus:ring-2 focus:ring-cinnabar/24"
               placeholder={locale === "zh" ? "2-20个字符" : "2-20 characters"}
               required
               minLength={2}
@@ -67,7 +70,7 @@ export default function RegisterPage() {
               type="email"
               value={email}
               onChange={(e) => { setEmail(e.target.value); clearError(); }}
-              className="w-full px-4 py-3 bg-white border border-charcoal/15 rounded-sm focus:outline-none focus:ring-2 focus:ring-cinnabar/30 focus:border-cinnabar/40 font-body text-charcoal transition-all"
+              className="w-full rounded-sm border border-charcoal/12 bg-white/72 px-4 py-3 font-body text-charcoal transition-all focus:border-cinnabar/40 focus:outline-none focus:ring-2 focus:ring-cinnabar/24"
               placeholder={locale === "zh" ? "请输入邮箱" : "Enter email"}
               required
             />
@@ -81,11 +84,52 @@ export default function RegisterPage() {
               type="password"
               value={password}
               onChange={(e) => { setPassword(e.target.value); clearError(); }}
-              className="w-full px-4 py-3 bg-white border border-charcoal/15 rounded-sm focus:outline-none focus:ring-2 focus:ring-cinnabar/30 focus:border-cinnabar/40 font-body text-charcoal transition-all"
+              className="w-full rounded-sm border border-charcoal/12 bg-white/72 px-4 py-3 font-body text-charcoal transition-all focus:border-cinnabar/40 focus:outline-none focus:ring-2 focus:ring-cinnabar/24"
               placeholder={locale === "zh" ? "至少6个字符" : "At least 6 characters"}
               required
               minLength={6}
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-display text-ink mb-2 tracking-wider">
+              {locale === "zh" ? "账号类型" : "Account Type"}
+            </label>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setRole("user")}
+                className={`flex-1 py-2.5 text-sm font-display tracking-wider border rounded-sm transition-all duration-300 ${
+                  role === "user"
+                    ? "border-cinnabar bg-cinnabar/5 text-cinnabar"
+                    : "border-charcoal/15 text-charcoal/50 hover:border-charcoal/30"
+                }`}
+              >
+                {locale === "zh" ? "普通用户" : "User"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole("guide")}
+                className={`flex-1 py-2.5 text-sm font-display tracking-wider border rounded-sm transition-all duration-300 ${
+                  role === "guide"
+                    ? "border-cinnabar bg-cinnabar/5 text-cinnabar"
+                    : "border-charcoal/15 text-charcoal/50 hover:border-charcoal/30"
+                }`}
+              >
+                {locale === "zh" ? "导览员" : "Guide"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole("admin")}
+                className={`flex-1 py-2.5 text-sm font-display tracking-wider border rounded-sm transition-all duration-300 ${
+                  role === "admin"
+                    ? "border-cinnabar bg-cinnabar/5 text-cinnabar"
+                    : "border-charcoal/15 text-charcoal/50 hover:border-charcoal/30"
+                }`}
+              >
+                {locale === "zh" ? "管理员" : "Admin"}
+              </button>
+            </div>
           </div>
 
           <button

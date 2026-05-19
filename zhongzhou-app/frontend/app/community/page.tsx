@@ -8,10 +8,12 @@ import { useAuthStore } from "@/stores/authStore";
 import { spots } from "@/lib/spots";
 import { formatRelativeTime } from "@/lib/utils";
 import ConfirmModal from "@/components/ui/ConfirmModal";
+import AchievementToast from "@/components/achievements/AchievementToast";
+import { DeleteIcon, ChatIcon, LikeIcon } from "@/components/icons";
 
 interface Post {
   id: number;
-  user_id: number;
+  user_id: string;
   username: string;
   user_avatar: string | null;
   content: string;
@@ -40,8 +42,8 @@ export default function CommunityPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [posting, setPosting] = useState(false);
-  const [tick, setTick] = useState(0);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [newAchievements, setNewAchievements] = useState<string[]>([]);
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
@@ -51,8 +53,8 @@ export default function CommunityPage() {
       if (token) headers.Authorization = `Bearer ${token}`;
       const res = await fetch(`/api/posts?${params}`, { headers });
       const data = await res.json();
-      setPosts(data.posts);
-      setTotalPages(data.totalPages);
+      setPosts(data.posts || []);
+      setTotalPages(data.totalPages || 0);
     } catch {
       // ignore
     } finally {
@@ -60,12 +62,8 @@ export default function CommunityPage() {
     }
   }, [page, token]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchPosts(); }, [fetchPosts]);
-
-  useEffect(() => {
-    const timer = setInterval(() => setTick((t) => t + 1), 60000);
-    return () => clearInterval(timer);
-  }, []);
 
   const handleImagePick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -101,6 +99,7 @@ export default function CommunityPage() {
         setSpotId("");
         handleRemoveImage();
         setShowCompose(false);
+        if (data.newAchievements?.length) setNewAchievements(data.newAchievements);
       }
     } catch {
       // ignore
@@ -149,16 +148,18 @@ export default function CommunityPage() {
   return (
     <div className="relative z-10">
       {/* Header */}
-      <section className="max-w-3xl mx-auto px-4 pt-10 pb-6">
-        <div className="flex items-center justify-between">
+      <section className="heritage-hero">
+        <div className="relative z-10 mx-auto flex max-w-3xl items-center justify-between px-4 py-14">
           <div>
-            <div className="seal-stamp text-xs tracking-[0.3em] w-fit px-3 py-1 mb-3">
+            <div className="seal-stamp text-xs tracking-[0.3em] w-fit px-3 py-1 mb-4">
               {locale === "zh" ? "旅行社区" : "COMMUNITY"}
             </div>
-            <h1 className="font-display font-bold text-3xl text-ink tracking-wide">
+            <h1 className="font-display font-bold text-4xl text-white tracking-wide md:text-5xl">
               {locale === "zh" ? "旅人心声" : "Travelers' Stories"}
             </h1>
-            <div className="mt-3 w-16 h-[2px] bg-gradient-to-r from-cinnabar via-gold to-transparent" />
+            <p className="mt-3 max-w-md text-sm leading-7 text-white/58">
+              {locale === "zh" ? "把途中见闻写下来，也看看别人眼中的中轴线。" : "Share what you saw, and read how others experienced the Axis."}
+            </p>
           </div>
           {user && (
             <button
@@ -174,7 +175,7 @@ export default function CommunityPage() {
       {/* Compose */}
       {showCompose && user && (
         <section className="max-w-3xl mx-auto px-4 pb-6 animate-fade-in-up">
-          <div className="bg-white/70 border border-charcoal/5 rounded-sm p-5">
+          <div className="heritage-panel rounded-lg p-5">
             <div className="flex items-start gap-3">
               <div className="w-9 h-9 rounded-full bg-cinnabar/10 flex items-center justify-center overflow-hidden flex-shrink-0">
                 {user.avatar ? (
@@ -195,6 +196,7 @@ export default function CommunityPage() {
                 {/* Image preview */}
                 {imagePreview && (
                   <div className="relative inline-block mt-2 mb-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={imagePreview} alt="" className="max-h-40 rounded-sm border border-charcoal/10" />
                     <button
                       onClick={handleRemoveImage}
@@ -259,7 +261,7 @@ export default function CommunityPage() {
             {posts.map((post, i) => (
               <article
                 key={post.id}
-                className="bg-white/70 border border-charcoal/5 rounded-sm overflow-hidden hover:border-charcoal/10 transition-colors animate-fade-in-up"
+                className="paper-surface overflow-hidden rounded-lg transition-colors animate-fade-in-up"
                 style={{ animationDelay: `${i * 0.04}s` }}
               >
                 {/* Header */}
@@ -292,7 +294,7 @@ export default function CommunityPage() {
                       className="text-charcoal/20 hover:text-cinnabar transition-colors text-sm"
                       title={locale === "zh" ? "删除" : "Delete"}
                     >
-                      ✕
+                      <DeleteIcon size={14} />
                     </button>
                   )}
                 </div>
@@ -307,10 +309,12 @@ export default function CommunityPage() {
                 {/* Image */}
                 {post.image_path && (
                   <div className="px-5 pb-3">
-                    <img
+                    <Image
                       src={post.image_path}
                       alt=""
-                      className="max-h-80 rounded-sm border border-charcoal/5 object-cover"
+                      width={800}
+                      height={500}
+                      className="max-h-80 rounded-sm border border-charcoal/5 object-cover w-full h-auto"
                     />
                   </div>
                 )}
@@ -323,14 +327,14 @@ export default function CommunityPage() {
                       post.liked ? "text-cinnabar" : "text-charcoal/30 hover:text-cinnabar"
                     }`}
                   >
-                    <span className="text-base">{post.liked ? "❤" : "♡"}</span>
+                    <LikeIcon size={16} filled={post.liked} />
                     <span className="font-body">{post.likes || ""}</span>
                   </button>
                   <Link
                     href={`/community/${post.id}`}
                     className="flex items-center gap-1.5 text-sm text-charcoal/30 hover:text-cinnabar transition-colors"
                   >
-                    <span className="text-base">💬</span>
+                    <ChatIcon size={16} />
                     <span className="font-body">{post.comment_count || ""}</span>
                   </Link>
                   <Link
@@ -393,6 +397,10 @@ export default function CommunityPage() {
           onConfirm={handleDelete}
           onCancel={() => setConfirmDelete(null)}
         />
+      )}
+
+      {newAchievements.length > 0 && (
+        <AchievementToast achievementIds={newAchievements} onDone={() => setNewAchievements([])} />
       )}
     </div>
   );

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useLocaleStore } from "@/stores/localeStore";
 import { t } from "@/lib/i18n";
+import { PalaceIcon, BellIcon, GlobeIcon, ScaleIcon } from "@/components/icons";
 
 const timeline = [
   {
@@ -39,22 +40,22 @@ const timeline = [
 
 const highlights = [
   {
-    emoji: "🏯",
+    Icon: PalaceIcon,
     zh: { title: "对称之美", desc: "中轴线东西对称，左祖右社、前朝后市，体现中国传统的\"居中而治\"理念。" },
     en: { title: "Symmetry", desc: "The axis is perfectly symmetrical — ancestral temple left, altar right, court front, market back — embodying the Chinese ideal of 'ruling from the center'." },
   },
   {
-    emoji: "🎵",
+    Icon: BellIcon,
     zh: { title: "晨钟暮鼓", desc: "钟楼鼓楼定时报时，钟声浑厚、鼓声沉稳，数百年来守护着古都的时间秩序。" },
     en: { title: "Bells & Drums", desc: "The Bell and Drum Towers kept time for centuries — deep bells at dawn, steady drums at dusk — guarding the ancient capital's temporal rhythm." },
   },
   {
-    emoji: "🌿",
+    Icon: GlobeIcon,
     zh: { title: "天人合一", desc: "天坛祈年殿的圆形攒尖、方形围墙，象征\"天圆地方\"，是中国古代宇宙观的建筑表达。" },
     en: { title: "Heaven & Earth", desc: "The Temple of Heaven's round hall atop a square wall symbolizes 'round heaven, square earth' — architecture as cosmology." },
   },
   {
-    emoji: "🏛️",
+    Icon: ScaleIcon,
     zh: { title: "礼制秩序", desc: "建筑的高度、开间、屋顶形制严格对应等级，从永定门到钟鼓楼，一部用建筑书写的礼制教科书。" },
     en: { title: "Ritual Order", desc: "Building height, bay count, and roof form strictly follow hierarchy — from Yongdingmen to the Drum Tower, architecture as a textbook of ritual propriety." },
   },
@@ -66,13 +67,7 @@ export default function CulturePage() {
   return (
     <div className="relative z-10">
       {/* Hero */}
-      <section className="relative py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-ink" />
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-cinnabar/15 rounded-full blur-[120px]" />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-jade/10 rounded-full blur-[100px]" />
-        </div>
-
+      <section className="heritage-hero py-24">
         <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
           <div className="seal-stamp text-xs tracking-[0.3em] px-4 py-1.5 mx-auto mb-8 inline-block">
             {locale === "zh" ? "世界遗产" : "WORLD HERITAGE"}
@@ -90,34 +85,37 @@ export default function CulturePage() {
       </section>
 
       {/* Intro paragraph */}
-      <section className="max-w-3xl mx-auto px-4 py-16">
-        <p className="font-body text-charcoal/70 text-base md:text-lg leading-[1.9] text-center">
+      <section className="max-w-4xl mx-auto px-4 py-16">
+        <div className="heritage-panel rounded-lg px-6 py-8 md:px-10">
+        <p className="font-body text-charcoal/72 text-base md:text-lg leading-[1.9] text-center">
           {locale === "zh"
             ? "北京中轴线南起永定门，北至钟鼓楼，全长约7.8公里，是世界上现存最长的城市中轴线。它始建于元代（1267年），历经明清两代的不断完善，串联起15处遗产构成要素——从皇家宫殿到祭祀坛庙，从城市管理设施到公共空间，完整展现了中国古代\"以中为尊\"的都城规划理念。2024年7月，北京中轴线正式列入《世界遗产名录》。"
             : "Beijing's Central Axis stretches from Yongdingmen in the south to the Bell and Drum Towers in the north — approximately 7.8 km, the longest surviving urban axis in the world. Built beginning in 1267 and refined through the Ming and Qing dynasties, it connects 15 heritage components — from imperial palaces to sacrificial temples, from civic infrastructure to public spaces — showcasing China's ancient planning philosophy of 'centering as supreme'. In July 2024, it was officially inscribed on the UNESCO World Heritage List."}
         </p>
+        </div>
       </section>
 
       {/* Cultural highlights */}
       <section className="relative py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-rice-paper-warm/60" />
         <div className="relative z-10 max-w-6xl mx-auto px-4">
           <div className="text-center mb-14">
+            <span className="section-kicker mb-4">
+              {locale === "zh" ? "城市礼序" : "URBAN ORDER"}
+            </span>
             <h2 className="font-display font-bold text-3xl md:text-4xl text-ink mb-3 tracking-wider">
               {locale === "zh" ? "文化精髓" : "Cultural Essence"}
             </h2>
-            <div className="mt-4 mx-auto w-16 h-[2px] bg-gradient-to-r from-transparent via-cinnabar to-transparent" />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {highlights.map((h, i) => (
               <div
                 key={i}
-                className="group relative p-7 bg-white/70 border border-charcoal/5 rounded-sm hover:border-cinnabar/20 hover:shadow-lg transition-all duration-500 animate-fade-in-up"
+                className="paper-surface group relative p-7 rounded-lg hover:border-cinnabar/20 transition-all duration-500 animate-fade-in-up"
                 style={{ animationDelay: `${i * 0.12}s` }}
               >
-                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                  {h.emoji}
+                <div className="text-cinnabar/70 mb-4 group-hover:scale-110 group-hover:text-cinnabar transition-all duration-300">
+                  <h.Icon size={36} />
                 </div>
                 <div className="absolute top-3 right-4 font-display text-5xl font-bold text-ink/[0.03] leading-none select-none">
                   {locale === "zh" ? h.zh.title[0] : ""}
@@ -184,12 +182,7 @@ export default function CulturePage() {
       </section>
 
       {/* Numbers */}
-      <section className="relative py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-ink" />
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-0 right-1/3 w-80 h-80 bg-cinnabar/15 rounded-full blur-[100px]" />
-        </div>
-
+      <section className="ink-band relative py-20 overflow-hidden">
         <div className="relative z-10 max-w-5xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[

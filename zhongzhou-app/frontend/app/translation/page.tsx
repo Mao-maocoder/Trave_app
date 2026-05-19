@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useLocaleStore } from "@/stores/localeStore";
 import { t } from "@/lib/i18n";
+import { TipIcon, HandWaveIcon, MapIcon, BowlIcon, ShoppingBagIcon, PalaceIcon, EmergencyIcon } from "@/components/icons";
 
 interface Phrase {
   zh: string;
@@ -12,7 +13,7 @@ interface Phrase {
 
 interface Category {
   id: string;
-  icon: string;
+  Icon: typeof HandWaveIcon;
   zh: string;
   en: string;
   phrases: Phrase[];
@@ -21,7 +22,7 @@ interface Category {
 const categories: Category[] = [
   {
     id: "greetings",
-    icon: "👋",
+    Icon: HandWaveIcon,
     zh: "基本问候",
     en: "Greetings",
     phrases: [
@@ -37,7 +38,7 @@ const categories: Category[] = [
   },
   {
     id: "directions",
-    icon: "🗺️",
+    Icon: MapIcon,
     zh: "问路出行",
     en: "Directions",
     phrases: [
@@ -52,7 +53,7 @@ const categories: Category[] = [
   },
   {
     id: "food",
-    icon: "🍜",
+    Icon: BowlIcon,
     zh: "餐饮美食",
     en: "Dining",
     phrases: [
@@ -68,7 +69,7 @@ const categories: Category[] = [
   },
   {
     id: "shopping",
-    icon: "🛍️",
+    Icon: ShoppingBagIcon,
     zh: "购物消费",
     en: "Shopping",
     phrases: [
@@ -83,7 +84,7 @@ const categories: Category[] = [
   },
   {
     id: "attractions",
-    icon: "🏯",
+    Icon: PalaceIcon,
     zh: "景点游览",
     en: "Sightseeing",
     phrases: [
@@ -98,7 +99,7 @@ const categories: Category[] = [
   },
   {
     id: "emergency",
-    icon: "🆘",
+    Icon: EmergencyIcon,
     zh: "紧急求助",
     en: "Emergency",
     phrases: [
@@ -130,24 +131,25 @@ export default function TranslationPage() {
   return (
     <div className="relative z-10">
       {/* Hero */}
-      <section className="max-w-7xl mx-auto px-4 pt-10 pb-6">
-        <div className="seal-stamp text-xs tracking-[0.3em] w-fit px-3 py-1 mb-3">
-          {locale === "zh" ? "旅行用语" : "TRAVEL PHRASEBOOK"}
+      <section className="heritage-hero">
+        <div className="relative z-10 mx-auto max-w-7xl px-4 py-14">
+          <div className="seal-stamp text-xs tracking-[0.3em] w-fit px-3 py-1 mb-4">
+            {locale === "zh" ? "旅行用语" : "TRAVEL PHRASEBOOK"}
+          </div>
+          <h1 className="font-display font-bold text-4xl text-white tracking-wide md:text-5xl">
+            {t(locale, "nav.translation")}
+          </h1>
+          <p className="text-white/58 font-body text-sm mt-3 max-w-xl leading-7">
+            {locale === "zh"
+              ? "实用旅行短语，点击即可复制。告别语言障碍，畅游中轴线。"
+              : "Practical travel phrases — tap to copy. Break the language barrier and explore the Central Axis with ease."}
+          </p>
         </div>
-        <h1 className="font-display font-bold text-3xl text-ink tracking-wide">
-          {t(locale, "nav.translation")}
-        </h1>
-        <p className="text-charcoal/50 font-body text-sm mt-2 max-w-lg">
-          {locale === "zh"
-            ? "实用旅行短语，点击即可复制。告别语言障碍，畅游中轴线。"
-            : "Practical travel phrases — tap to copy. Break the language barrier and explore the Central Axis with ease."}
-        </p>
-        <div className="mt-4 w-16 h-[2px] bg-gradient-to-r from-cinnabar via-gold to-transparent" />
       </section>
 
       {/* Category tabs */}
-      <section className="max-w-7xl mx-auto px-4 pb-6">
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+      <section className="relative z-20 max-w-7xl mx-auto px-4 pt-6 pb-6">
+        <div className="heritage-panel chip-scroll flex gap-2 overflow-x-auto rounded-lg p-3">
           {categories.map((cat) => (
             <button
               key={cat.id}
@@ -155,10 +157,10 @@ export default function TranslationPage() {
               className={`flex items-center gap-2 px-4 py-2 rounded-sm text-sm font-display tracking-wider whitespace-nowrap transition-all duration-300 ${
                 active === cat.id
                   ? "bg-cinnabar text-white shadow-[0_2px_12px_rgba(194,59,34,0.2)]"
-                  : "bg-white/60 text-charcoal/60 hover:text-cinnabar hover:bg-white border border-charcoal/5"
+                  : "bg-white/55 text-charcoal/60 hover:bg-white hover:text-cinnabar border border-charcoal/5"
               }`}
             >
-              <span>{cat.icon}</span>
+              <cat.Icon size={16} />
               <span>{locale === "zh" ? cat.zh : cat.en}</span>
             </button>
           ))}
@@ -171,7 +173,7 @@ export default function TranslationPage() {
           {current.phrases.map((p, i) => (
             <div
               key={i}
-              className="group bg-white/70 border border-charcoal/5 rounded-sm p-4 hover:border-cinnabar/15 hover:shadow-md transition-all duration-300 cursor-pointer animate-fade-in-up"
+              className="paper-surface group cursor-pointer rounded-lg p-4 transition-all duration-300 animate-fade-in-up"
               style={{ animationDelay: `${i * 0.04}s` }}
               onClick={() => handleCopy(p.zh)}
             >
@@ -205,8 +207,8 @@ export default function TranslationPage() {
 
         {/* Usage tip */}
         <div className="mt-10 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-rice-paper-warm/60 rounded-sm border border-charcoal/5">
-            <span className="text-sm">💡</span>
+          <div className="heritage-panel inline-flex items-center gap-2 rounded-lg px-4 py-2">
+            <TipIcon size={16} className="text-gold" />
             <span className="text-xs text-charcoal/40 font-body">
               {locale === "zh"
                 ? "点击短语即可复制到剪贴板，直接粘贴给对方看"

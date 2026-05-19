@@ -7,7 +7,9 @@ import { getSpotById, spots } from "@/lib/spots";
 import { useLocaleStore } from "@/stores/localeStore";
 import { useAuthStore } from "@/stores/authStore";
 import { t } from "@/lib/i18n";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import AchievementToast from "@/components/achievements/AchievementToast";
+import { ReturnIcon, LikeIcon, TipIcon } from "@/components/icons";
 
 export default function SpotDetail() {
   const params = useParams();
@@ -16,14 +18,38 @@ export default function SpotDetail() {
   const { token } = useAuthStore();
   const spot = getSpotById(params.id as string);
   const from = searchParams.get("from");
-  const backHref = from === "community" ? "/community" : from === "photo-wall" ? "/photo-wall" : "/";
+  const backHref =
+    from === "community" ? "/community" :
+    from === "photo-wall" ? "/photo-wall" :
+    from === "map" ? "/map" :
+    from === "profile" ? "/profile" :
+    from === "itinerary" ? "/itinerary" :
+    "/";
   const [favorited, setFavorited] = useState(false);
+  const [newAchievements, setNewAchievements] = useState<string[]>([]);
 
   useEffect(() => {
+    // Record browsing history
+    try {
+      const stored = localStorage.getItem("browsing_history");
+      const history: { spotId: string; visitedAt: string; duration: string }[] = stored ? JSON.parse(stored) : [];
+      const filtered = history.filter((h) => h.spotId !== params.id);
+      filtered.unshift({ spotId: params.id as string, visitedAt: new Date().toISOString(), duration: "0 min" });
+      localStorage.setItem("browsing_history", JSON.stringify(filtered.slice(0, 50)));
+    } catch { /* ignore */ }
+
     if (!token) return;
     fetch("/api/favorites", { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => res.json())
       .then((data) => setFavorited(data.favorites?.includes(params.id)))
+      .catch(() => {});
+    fetch("/api/achievements/visit", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ spotId: params.id }),
+    })
+      .then((res) => res.json())
+      .then((data) => { if (data.newAchievements?.length) setNewAchievements(data.newAchievements); })
       .catch(() => {});
   }, [token, params.id]);
 
@@ -35,11 +61,16 @@ export default function SpotDetail() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      if (res.ok) setFavorited(data.favorited);
+      if (res.ok) {
+        setFavorited(data.favorited);
+        if (data.newAchievements?.length) setNewAchievements(data.newAchievements);
+      }
     } catch {
       // ignore
     }
   };
+
+  const handleAchievementDone = useCallback(() => setNewAchievements([]), []);
 
   if (!spot) {
     return (
@@ -49,7 +80,7 @@ export default function SpotDetail() {
             {locale === "zh" ? "景点未找到" : "Spot not found"}
           </h1>
           <Link href={backHref} className="text-cinnabar hover:text-cinnabar-deep font-display text-sm tracking-wider">
-            ← {t(locale, "spots.back")}
+            <ReturnIcon size={16} className="inline-block align-middle mr-0.5" /> {t(locale, "spots.back")}
           </Link>
         </div>
       </div>
@@ -64,7 +95,7 @@ export default function SpotDetail() {
   return (
     <div className="relative z-10">
       {/* Hero Image */}
-      <section className="relative h-[50vh] min-h-[400px] overflow-hidden">
+      <section className="relative h-[58vh] min-h-[460px] overflow-hidden">
         <Image
           src={spot.image}
           alt={spot.name[locale]}
@@ -75,8 +106,9 @@ export default function SpotDetail() {
           priority
         />
         {/* Multi-layer overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/28 to-black/10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/52 via-black/14 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-rice-paper via-rice-paper/18 to-transparent" />
         {/* Grain */}
         <div className="absolute inset-0 grain-overlay" />
 
@@ -88,7 +120,7 @@ export default function SpotDetail() {
               href={backHref}
               className="inline-flex items-center gap-2 text-white/60 hover:text-white text-sm mb-6 font-body transition-colors"
             >
-              <span className="text-lg">←</span>
+              <ReturnIcon size={20} />
               {t(locale, "spots.back")}
             </Link>
 
@@ -111,7 +143,7 @@ export default function SpotDetail() {
                   className="ml-auto flex-shrink-0 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm flex items-center justify-center transition-all"
                   title={favorited ? (locale === "zh" ? "取消收藏" : "Unfavorite") : (locale === "zh" ? "收藏" : "Favorite")}
                 >
-                  <span className="text-xl">{favorited ? "❤️" : "🤍"}</span>
+                  <LikeIcon size={20} filled={favorited} />
                 </button>
               )}
             </div>
@@ -137,14 +169,14 @@ export default function SpotDetail() {
         </div>
 
         {/* Description */}
-        <section className="mb-16 animate-fade-in-up delay-100">
+        <section className="heritage-panel mb-16 rounded-lg px-6 py-7 animate-fade-in-up delay-100 md:px-8">
           <p className="text-charcoal/80 text-lg leading-[1.9] font-body">
             {spot.description[locale]}
           </p>
         </section>
 
         {/* History */}
-        <section className="mb-16 animate-fade-in-up delay-200">
+        <section className="paper-surface mb-16 rounded-lg p-6 animate-fade-in-up delay-200 md:p-8">
           <div className="flex items-center gap-3 mb-6">
             <span className="text-2xl">📜</span>
             <h2 className="font-display font-bold text-2xl text-ink tracking-wide">
@@ -163,7 +195,7 @@ export default function SpotDetail() {
         {/* Tips */}
         <section className="mb-16 animate-fade-in-up delay-300">
           <div className="flex items-center gap-3 mb-6">
-            <span className="text-2xl">💡</span>
+            <TipIcon size={24} className="text-gold" />
             <h2 className="font-display font-bold text-2xl text-ink tracking-wide">
               {t(locale, "spots.tips")}
             </h2>
@@ -173,7 +205,7 @@ export default function SpotDetail() {
             {spot.tips[locale].map((tip, i) => (
               <div
                 key={i}
-                className="flex items-start gap-4 p-5 bg-jade/5 border border-jade/10 rounded-lg hover:border-jade/20 transition-colors"
+                className="heritage-panel flex items-start gap-4 rounded-lg p-5 transition-colors hover:border-jade/20"
               >
                 <span className="font-display font-bold text-jade text-lg w-6 flex-shrink-0">
                   {String(i + 1).padStart(2, "0")}
@@ -193,7 +225,7 @@ export default function SpotDetail() {
             </h2>
             <div className="flex-1 h-[1px] bg-gradient-to-r from-charcoal/10 to-transparent" />
           </div>
-          <div className="p-6 bg-silk/50 rounded-lg border border-charcoal/5">
+          <div className="heritage-panel rounded-lg p-6">
             <p className="text-charcoal/60 font-body text-sm">
               {locale === "zh"
                 ? `纬度: ${spot.location.lat.toFixed(4)}　经度: ${spot.location.lng.toFixed(4)}`
@@ -212,10 +244,10 @@ export default function SpotDetail() {
         <div className="flex justify-between items-center pt-12 border-t border-charcoal/10">
           {prevSpot ? (
             <Link
-              href={`/spots/${prevSpot.id}`}
+              href={`/spots/${prevSpot.id}${from ? `?from=${from}` : ""}`}
               className="group flex items-center gap-3 text-charcoal/60 hover:text-cinnabar transition-colors"
             >
-              <span className="text-2xl group-hover:-translate-x-1 transition-transform">←</span>
+              <ReturnIcon size={24} className="group-hover:-translate-x-1 transition-transform" />
               <div>
                 <div className="text-xs text-charcoal/40 font-display tracking-wider">
                   {locale === "zh" ? "上一站" : "Previous"}
@@ -228,7 +260,7 @@ export default function SpotDetail() {
           )}
           {nextSpot ? (
             <Link
-              href={`/spots/${nextSpot.id}`}
+              href={`/spots/${nextSpot.id}${from ? `?from=${from}` : ""}`}
               className="group flex items-center gap-3 text-charcoal/60 hover:text-cinnabar transition-colors text-right"
             >
               <div>
@@ -244,6 +276,10 @@ export default function SpotDetail() {
           )}
         </div>
       </div>
+
+      {newAchievements.length > 0 && (
+        <AchievementToast achievementIds={newAchievements} onDone={handleAchievementDone} />
+      )}
     </div>
   );
 }

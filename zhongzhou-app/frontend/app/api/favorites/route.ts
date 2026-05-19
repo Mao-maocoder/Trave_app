@@ -1,23 +1,19 @@
 import { NextResponse } from "next/server";
-import db from "@/lib/db";
-import { verifyToken } from "@/lib/auth";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getAuthUser } from "@/lib/api-helpers";
 
 // GET /api/favorites — list user's favorite spot IDs
 export async function GET(req: Request) {
   try {
-    const authHeader = req.headers.get("authorization");
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    const authUser = await getAuthUser(req);
+    if (!authUser) return NextResponse.json({ favorites: [] });
 
-    if (!token) {
-      return NextResponse.json({ favorites: [] });
-    }
+    const { data } = await supabaseAdmin
+      .from("favorites")
+      .select("spot_id")
+      .eq("user_id", authUser.id);
 
-    const payload = await verifyToken(token);
-    const rows = db
-      .prepare("SELECT spot_id FROM favorites WHERE user_id = ?")
-      .all(payload.id) as { spot_id: string }[];
-
-    return NextResponse.json({ favorites: rows.map((r) => r.spot_id) });
+    return NextResponse.json({ favorites: (data || []).map((r) => r.spot_id) });
   } catch {
     return NextResponse.json({ favorites: [] });
   }

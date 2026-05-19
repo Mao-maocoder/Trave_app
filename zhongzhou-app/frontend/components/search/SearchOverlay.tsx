@@ -2,8 +2,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { spots } from "@/lib/spots";
 import { useLocaleStore } from "@/stores/localeStore";
+import { CancelIcon } from "@/components/icons";
 
 interface SearchOverlayProps {
   onClose: () => void;
@@ -70,9 +72,7 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
               onClick={onClose}
               className="absolute right-4 top-1/2 -translate-y-1/2 text-charcoal/30 hover:text-ink transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-                <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
-              </svg>
+              <CancelIcon size={20} />
             </button>
           </div>
 
@@ -89,15 +89,16 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
                 results.map((spot) => (
                   <Link
                     key={spot.id}
-                    href={`/spots/${spot.id}`}
+                    href={`/spots/${spot.id}?from=search`}
                     onClick={onClose}
                     className="flex items-start gap-4 px-5 py-4 hover:bg-charcoal/3 transition-colors border-b border-charcoal/5 last:border-0"
                   >
-                    <div className="w-12 h-12 rounded-sm overflow-hidden flex-shrink-0 bg-charcoal/5">
-                      <img
+                    <div className="relative w-12 h-12 rounded-sm overflow-hidden flex-shrink-0 bg-charcoal/5">
+                      <Image
                         src={spot.image}
                         alt={spot.name[locale]}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                       />
                     </div>
                     <div className="flex-1 min-w-0">

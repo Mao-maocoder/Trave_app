@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import db from "@/lib/db";
-import { verifyToken } from "@/lib/auth";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getAuthUser } from "@/lib/api-helpers";
 
 // POST /api/favorites/[spotId] — toggle favorite
 export async function POST(
@@ -10,24 +10,21 @@ export async function POST(
   try {
     const { spotId } = await params;
 
-    const authHeader = req.headers.get("authorization");
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    const authUser = await getAuthUser(req);
+    if (!authUser) return NextResponse.json({ error: "请先登录" }, { status: 401 });
 
-    if (!token) {
-      return NextResponse.json({ error: "请先登录" }, { status: 401 });
-    }
-
-    const payload = await verifyToken(token);
-
-    const existing = db
-      .prepare("SELECT * FROM favorites WHERE user_id = ? AND spot_id = ?")
-      .get(payload.id, spotId) as { user_id: number; spot_id: string } | undefined;
+    const { data: existing } = await supabaseAdmin
+      .from("favorites")
+      .select("spot_id")
+      .eq("user_id", authUser.id)
+      .eq("spot_id", spotId)
+      .maybeSingle();
 
     if (existing) {
-      db.prepare("DELETE FROM favorites WHERE user_id = ? AND spot_id = ?").run(payload.id, spotId);
+      await supabaseAdmin.from("favorites").delete().eq("user_id", authUser.id).eq("spot_id", spotId);
       return NextResponse.json({ favorited: false });
     } else {
-      db.prepare("INSERT INTO favorites (user_id, spot_id) VALUES (?, ?)").run(payload.id, spotId);
+      await supabaseAdmin.from("favorites").insert({ user_id: authUser.id, spot_id: spotId });
       return NextResponse.json({ favorited: true });
     }
   } catch {

@@ -12,10 +12,18 @@
     "voice": "Voice AI",
     "itinerary": "Itinerary",
     "community": "Community",
+    "exhibitions": "Exhibitions",
+    "handbook": "Handbook",
     "login": "Login",
     "register": "Register",
     "profile": "Profile",
-    "admin": "Admin"
+    "admin": "Admin",
+    "settings": "Settings",
+    "feedback": "Feedback",
+    "history": "History",
+    "shop": "Shop",
+    "search": "Search",
+    "guide": "Guide"
   },
   "home": {
     "hero": {
@@ -36,7 +44,9 @@
       "voice": "Voice AI",
       "voiceDesc": "Smart audio guide",
       "culture": "Culture",
-      "cultureDesc": "Deep cultural experience"
+      "cultureDesc": "Deep cultural experience",
+      "shop": "Axis Shop",
+      "shopDesc": "Cultural souvenirs"
     }
   },
   "spots": {
@@ -55,5 +65,47 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "search": "Search"
+  },
+  "achievements": {
+    "title": "Achievements",
+    "unlocked": "Unlocked",
+    "of": "/",
+    "unlockedLabel": "Achievement Unlocked"
+  },
+  "shop": {
+    "title": "Axis Shop",
+    "subtitle": "Take the story of the Central Axis home",
+    "allCategory": "All",
+    "addToCart": "Add to Cart",
+    "buyNow": "Buy Now",
+    "cart": "Cart",
+    "cartEmpty": "Your cart is empty",
+    "cartEmptyDesc": "Go explore the Axis Shop",
+    "total": "Total",
+    "checkout": "Checkout",
+    "remove": "Remove",
+    "quantity": "Qty",
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock",
+    "sales": "Sold",
+    "rating": "Rating",
+    "relatedSpot": "Related Spot",
+    "backToShop": "Back to Shop",
+    "productDetail": "Product Details",
+    "addedToCart": "Added to cart",
+    "viewCart": "View Cart",
+    "continueShopping": "Continue Shopping"
+  },
+  "chat": {
+    "title": "Messages",
+    "newChat": "New Chat",
+    "searchUser": "Search username...",
+    "noConversations": "No conversations yet",
+    "startChat": "Start a chat",
+    "typeMessage": "Type a message...",
+    "selectConversation": "Select a conversation to start",
+    "noUsers": "No users found",
+    "searching": "Searching...",
+    "read": "Read"
   }
 }

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useLocaleStore } from "@/stores/localeStore";
-import { t } from "@/lib/i18n";
+import { TipIcon } from "@/components/icons";
 
 interface Phrase {
   zh: string;
@@ -31,15 +31,15 @@ export default function VoicePage() {
   const [activePhrase, setActivePhrase] = useState<number | null>(null);
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState("");
-  const [supported, setSupported] = useState(true);
+  const [supported] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  });
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   useEffect(() => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) {
-      setSupported(false);
-      return;
-    }
+    if (!SR) return;
     const recognition = new SR();
     recognition.lang = "zh-CN";
     recognition.interimResults = false;
@@ -92,12 +92,7 @@ export default function VoicePage() {
   return (
     <div className="relative z-10">
       {/* Hero */}
-      <section className="relative py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-ink" />
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-cinnabar/15 rounded-full blur-[120px]" />
-          <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-jade/10 rounded-full blur-[80px]" />
-        </div>
+      <section className="heritage-hero py-20">
         <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
           <div className="seal-stamp text-xs tracking-[0.3em] px-4 py-1.5 mx-auto mb-6 inline-block">
             {locale === "zh" ? "语音工具" : "VOICE TOOL"}
@@ -116,7 +111,7 @@ export default function VoicePage() {
 
       {/* Voice recognition section */}
       <section className="max-w-3xl mx-auto px-4 pt-10 pb-6">
-        <div className="bg-white/70 border border-charcoal/5 rounded-sm p-6 text-center">
+        <div className="heritage-panel rounded-lg p-6 text-center">
           <h2 className="font-display font-bold text-lg text-ink tracking-wider mb-2">
             {locale === "zh" ? "语音识别练习" : "Speech Recognition Practice"}
           </h2>
@@ -178,8 +173,8 @@ export default function VoicePage() {
           {phrases.map((p, i) => (
             <div
               key={i}
-              className={`group bg-white/70 border rounded-sm p-4 transition-all duration-300 animate-fade-in-up ${
-                activePhrase === i ? "border-cinnabar/20 shadow-md" : "border-charcoal/5 hover:border-cinnabar/15"
+              className={`paper-surface group rounded-lg p-4 transition-all duration-300 animate-fade-in-up ${
+                activePhrase === i ? "border-cinnabar/20 shadow-md" : "hover:border-cinnabar/15"
               }`}
               style={{ animationDelay: `${i * 0.04}s` }}
             >
@@ -240,8 +235,8 @@ export default function VoicePage() {
 
         {/* Tip */}
         <div className="mt-10 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-rice-paper-warm/60 rounded-sm border border-charcoal/5">
-            <span className="text-sm">💡</span>
+          <div className="heritage-panel inline-flex items-center gap-2 rounded-lg px-4 py-2">
+            <TipIcon size={16} className="text-gold" />
             <span className="text-xs text-charcoal/40 font-body">
               {locale === "zh"
                 ? "点击「中」听中文发音，点击「EN」听英文翻译"

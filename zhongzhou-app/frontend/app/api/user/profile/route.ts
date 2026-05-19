@@ -1,48 +1,47 @@
 import { NextResponse } from "next/server";
-import db from "@/lib/db";
-import { verifyToken } from "@/lib/auth";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getAuthUser } from "@/lib/api-helpers";
 
 // PUT /api/user/profile — update username
 export async function PUT(req: Request) {
   try {
-    const authHeader = req.headers.get("authorization");
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    const authUser = await getAuthUser(req);
+    if (!authUser) return NextResponse.json({ error: "请先登录" }, { status: 401 });
 
-    if (!token) {
-      return NextResponse.json({ error: "请先登录" }, { status: 401 });
-    }
-
-    const payload = await verifyToken(token);
     const { username } = await req.json();
 
     if (!username || username.trim().length === 0) {
       return NextResponse.json({ error: "昵称不能为空" }, { status: 400 });
     }
-
     if (username.trim().length > 20) {
       return NextResponse.json({ error: "昵称不能超过20个字符" }, { status: 400 });
     }
 
     const trimmed = username.trim();
 
-    // Check uniqueness (excluding self)
-    const existing = db
-      .prepare("SELECT id FROM users WHERE username = ? AND id != ?")
-      .get(trimmed, payload.id) as { id: number } | undefined;
+    // Check uniqueness
+    const { data: existing } = await supabaseAdmin
+      .from("users")
+      .select("id")
+      .eq("username", trimmed)
+      .neq("id", authUser.id)
+      .maybeSingle();
 
     if (existing) {
       return NextResponse.json({ error: "该昵称已被使用" }, { status: 409 });
     }
 
-    db.prepare("UPDATE users SET username = ? WHERE id = ?").run(trimmed, payload.id);
+    await supabaseAdmin.from("users").update({ username: trimmed }).eq("id", authUser.id);
+    await supabaseAdmin.from("photos").update({ username: trimmed }).eq("user_id", authUser.id);
+    await supabaseAdmin.from("comments").update({ username: trimmed }).eq("user_id", authUser.id);
+    await supabaseAdmin.from("posts").update({ username: trimmed }).eq("user_id", authUser.id);
+    await supabaseAdmin.from("post_comments").update({ username: trimmed }).eq("user_id", authUser.id);
 
-    // Also update username in photos and comments
-    db.prepare("UPDATE photos SET username = ? WHERE user_id = ?").run(trimmed, payload.id);
-    db.prepare("UPDATE comments SET username = ? WHERE user_id = ?").run(trimmed, payload.id);
-
-    const user = db
-      .prepare("SELECT id, username, email, role, avatar FROM users WHERE id = ?")
-      .get(payload.id);
+    const { data: user } = await supabaseAdmin
+      .from("users")
+      .select("id, username, email, role, avatar")
+      .eq("id", authUser.id)
+      .single();
 
     return NextResponse.json({ user });
   } catch {

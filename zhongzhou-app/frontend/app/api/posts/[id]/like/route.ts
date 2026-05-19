@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import db from "@/lib/db";
-import { verifyToken } from "@/lib/auth";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getAuthUser } from "@/lib/api-helpers";
 
 // POST /api/posts/[id]/like — toggle like
 export async function POST(
@@ -11,34 +11,31 @@ export async function POST(
     const { id } = await params;
     const postId = parseInt(id);
 
-    const authHeader = req.headers.get("authorization");
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    const authUser = await getAuthUser(req);
+    if (!authUser) return NextResponse.json({ error: "请先登录" }, { status: 401 });
 
-    if (!token) {
-      return NextResponse.json({ error: "请先登录" }, { status: 401 });
-    }
+    const { data: post } = await supabaseAdmin
+      .from("posts")
+      .select("id, likes")
+      .eq("id", postId)
+      .single();
 
-    const payload = await verifyToken(token);
+    if (!post) return NextResponse.json({ error: "动态不存在" }, { status: 404 });
 
-    const post = db.prepare("SELECT id, likes FROM posts WHERE id = ?").get(postId) as
-      | { id: number; likes: number }
-      | undefined;
-
-    if (!post) {
-      return NextResponse.json({ error: "动态不存在" }, { status: 404 });
-    }
-
-    const existing = db
-      .prepare("SELECT * FROM post_likes WHERE user_id = ? AND post_id = ?")
-      .get(payload.id, postId) as { user_id: number; post_id: number } | undefined;
+    const { data: existing } = await supabaseAdmin
+      .from("post_likes")
+      .select("post_id")
+      .eq("user_id", authUser.id)
+      .eq("post_id", postId)
+      .maybeSingle();
 
     if (existing) {
-      db.prepare("DELETE FROM post_likes WHERE user_id = ? AND post_id = ?").run(payload.id, postId);
-      db.prepare("UPDATE posts SET likes = MAX(0, likes - 1) WHERE id = ?").run(postId);
+      await supabaseAdmin.from("post_likes").delete().eq("user_id", authUser.id).eq("post_id", postId);
+      await supabaseAdmin.from("posts").update({ likes: Math.max(0, post.likes - 1) }).eq("id", postId);
       return NextResponse.json({ liked: false, likes: post.likes - 1 });
     } else {
-      db.prepare("INSERT INTO post_likes (user_id, post_id) VALUES (?, ?)").run(payload.id, postId);
-      db.prepare("UPDATE posts SET likes = likes + 1 WHERE id = ?").run(postId);
+      await supabaseAdmin.from("post_likes").insert({ user_id: authUser.id, post_id: postId });
+      await supabaseAdmin.from("posts").update({ likes: post.likes + 1 }).eq("id", postId);
       return NextResponse.json({ liked: true, likes: post.likes + 1 });
     }
   } catch {

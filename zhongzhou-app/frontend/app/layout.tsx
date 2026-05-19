@@ -17,12 +17,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh">
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&display=swap"
-          rel="stylesheet"
-        />
-      </head>
       <body className="min-h-screen flex flex-col font-body antialiased">
         <AuthProvider>
           <Navbar />

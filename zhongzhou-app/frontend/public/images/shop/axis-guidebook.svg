@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f7f0e4"/><stop offset="1" stop-color="#dde6d9"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="22" stdDeviation="22" flood-color="#1a1a1a" flood-opacity=".18"/></filter></defs>
+  <rect width="800" height="800" fill="url(#bg)"/>
+  <g filter="url(#shadow)" transform="rotate(-3 400 410)">
+    <rect x="248" y="168" width="304" height="452" rx="12" fill="#f8f1df" stroke="#2d2d2d" stroke-width="6"/>
+    <rect x="248" y="168" width="62" height="452" fill="#8b1a1a"/>
+    <text x="410" y="292" text-anchor="middle" font-family="serif" font-size="46" font-weight="700" fill="#8b1a1a">漫步</text>
+    <text x="410" y="356" text-anchor="middle" font-family="serif" font-size="46" font-weight="700" fill="#8b1a1a">中轴线</text>
+    <path d="M352 450h116M330 488h160M360 526h80" stroke="#c9a94e" stroke-width="8" stroke-linecap="round"/>
+    <path d="M310 168c26 9 26 443 0 452" fill="none" stroke="#c9a94e" stroke-width="5" opacity=".55"/>
+    <path d="M378 398h64v34h-64z" fill="#5a7c6f" opacity=".7"/>
+  </g>
+  <text x="400" y="102" text-anchor="middle" font-family="serif" font-size="42" font-weight="700" fill="#8b1a1a">《漫步中轴线》导览手册</text>
+  <text x="400" y="710" text-anchor="middle" font-family="serif" font-size="28" fill="#2d2d2d">Full-color guidebook with map</text>
+</svg>

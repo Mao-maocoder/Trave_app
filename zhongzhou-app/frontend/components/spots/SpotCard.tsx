@@ -16,13 +16,13 @@ export default function SpotCard({ spot, index = 0 }: SpotCardProps) {
 
   return (
     <Link
-      href={`/spots/${spot.id}`}
+      href={`/spots/${spot.id}?from=home`}
       className="group block card-lift animate-fade-in-up"
       style={{ animationDelay: `${index * 0.1}s` }}
     >
-      <div className="relative bg-white rounded-lg overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-charcoal/5">
+      <div className="paper-surface relative overflow-hidden rounded-lg">
         {/* Image Container */}
-        <div className="relative h-52 overflow-hidden grain-overlay">
+        <div className="relative aspect-[4/3] overflow-hidden grain-overlay">
           <Image
             src={spot.image}
             alt={spot.name[locale]}
@@ -32,11 +32,11 @@ export default function SpotCard({ spot, index = 0 }: SpotCardProps) {
             sizes="300px"
           />
           {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent z-[2]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/16 to-transparent z-[2]" />
 
           {/* Number badge — top left */}
           <div className="absolute top-3 left-3 z-[3]">
-            <div className="w-8 h-8 flex items-center justify-center bg-cinnabar/90 text-white font-display font-bold text-sm rounded-sm shadow-md">
+            <div className="flex h-8 w-10 items-center justify-center rounded-sm border border-white/28 bg-black/26 text-xs font-display font-bold text-white shadow-md backdrop-blur-md">
               {String(index + 1).padStart(2, "0")}
             </div>
           </div>
@@ -53,17 +53,17 @@ export default function SpotCard({ spot, index = 0 }: SpotCardProps) {
         </div>
 
         {/* Card Body */}
-        <div className="p-4">
+        <div className="p-5">
           <p className="text-charcoal/70 text-sm leading-relaxed line-clamp-2 font-body">
             {spot.description[locale]}
           </p>
 
           {/* Tags */}
-          <div className="mt-3 flex flex-wrap gap-1.5">
+          <div className="mt-4 flex flex-wrap gap-1.5">
             {spot.tags[locale].slice(0, 3).map((tag) => (
               <span
                 key={tag}
-                className="px-2 py-0.5 text-[10px] font-display tracking-wider text-cinnabar bg-cinnabar/5 border border-cinnabar/10 rounded-sm"
+                className="rounded-sm border border-cinnabar/10 bg-cinnabar/5 px-2 py-1 text-[10px] font-display tracking-wider text-cinnabar"
               >
                 {tag}
               </span>
@@ -71,11 +71,11 @@ export default function SpotCard({ spot, index = 0 }: SpotCardProps) {
           </div>
 
           {/* CTA */}
-          <div className="mt-4 flex items-center justify-between">
+          <div className="mt-5 flex items-center justify-between">
             <span className="text-xs text-cinnabar font-display tracking-wider group-hover:tracking-widest transition-all duration-300">
               {t(locale, "spots.viewDetail")}
             </span>
-            <span className="text-cinnabar/60 group-hover:text-cinnabar group-hover:translate-x-1 transition-all duration-300">
+            <span className="flex h-7 w-7 items-center justify-center rounded-sm border border-cinnabar/15 text-cinnabar/70 transition-all duration-300 group-hover:translate-x-1 group-hover:border-cinnabar/35 group-hover:bg-cinnabar group-hover:text-white">
               →
             </span>
           </div>

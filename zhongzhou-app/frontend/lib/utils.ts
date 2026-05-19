@@ -1,5 +1,14 @@
 export function formatRelativeTime(dateStr: string, locale: string): string {
-  const date = new Date(dateStr.endsWith("Z") ? dateStr : dateStr + "Z");
+  // Supabase timestamps may or may not have timezone info
+  let date: Date;
+  if (/[Zz+\-]\d{2}:?\d{2}$/.test(dateStr) || dateStr.endsWith("Z")) {
+    date = new Date(dateStr);
+  } else {
+    date = new Date(dateStr + "Z");
+  }
+  if (isNaN(date.getTime())) {
+    date = new Date(dateStr);
+  }
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffSec = Math.floor(diffMs / 1000);

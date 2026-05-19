@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import db from "@/lib/db";
-import { verifyToken } from "@/lib/auth";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getAuthUser } from "@/lib/api-helpers";
 import { deletePhoto } from "@/lib/storage";
 
-// GET /api/posts/[id] — single post with comments
+// GET /api/posts/[id]
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -12,60 +12,78 @@ export async function GET(
     const { id } = await params;
     const postId = parseInt(id);
 
-    const post = db
-      .prepare(
-        `SELECT p.*, u.avatar as user_avatar,
-         (SELECT COUNT(*) FROM post_comments WHERE post_id = p.id) as comment_count
-         FROM posts p LEFT JOIN users u ON p.user_id = u.id WHERE p.id = ?`
-      )
-      .get(postId) as any | undefined;
+    const { data: post, error } = await supabaseAdmin
+      .from("posts")
+      .select("*")
+      .eq("id", postId)
+      .single();
 
-    if (!post) {
+    if (error || !post) {
       return NextResponse.json({ error: "动态不存在" }, { status: 404 });
     }
 
-    // Check liked status
-    const authHeader = req.headers.get("authorization");
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
-    let liked = false;
+    // Fetch author avatar
+    const { data: author } = await supabaseAdmin
+      .from("users")
+      .select("avatar")
+      .eq("id", post.user_id)
+      .single();
 
-    if (token) {
-      try {
-        const payload = await verifyToken(token);
-        const existing = db
-          .prepare("SELECT * FROM post_likes WHERE user_id = ? AND post_id = ?")
-          .get(payload.id, postId);
-        liked = !!existing;
-      } catch {
-        // ignore
-      }
+    // Check liked status
+    const authUser = await getAuthUser(req);
+    let liked = false;
+    if (authUser) {
+      const { data: existing } = await supabaseAdmin
+        .from("post_likes")
+        .select("post_id")
+        .eq("user_id", authUser.id)
+        .eq("post_id", postId)
+        .maybeSingle();
+      liked = !!existing;
     }
 
     // Get comments
-    const comments = db
-      .prepare(
-        `SELECT pc.*, u.avatar FROM post_comments pc
-         LEFT JOIN users u ON pc.user_id = u.id
-         WHERE pc.post_id = ?
-         ORDER BY pc.created_at ASC`
-      )
-      .all(postId) as any[];
+    const { data: comments } = await supabaseAdmin
+      .from("post_comments")
+      .select("*")
+      .eq("post_id", postId)
+      .order("created_at", { ascending: true });
 
-    const topLevel = comments.filter((c: any) => !c.parent_id);
-    const replies = comments.filter((c: any) => c.parent_id);
+    const allComments = comments || [];
 
-    const threaded = topLevel.map((c: any) => ({
+    // Fetch avatars for comment authors
+    const commentUserIds = [...new Set(allComments.map((c) => c.user_id))];
+    const avatarMap = new Map<string, string | null>();
+    if (commentUserIds.length > 0) {
+      const { data: users } = await supabaseAdmin
+        .from("users")
+        .select("id, avatar")
+        .in("id", commentUserIds);
+      (users || []).forEach((u) => avatarMap.set(u.id, u.avatar));
+    }
+
+    const commentsWithAvatar = allComments.map((c) => ({
       ...c,
-      replies: replies.filter((r: any) => r.parent_id === c.id),
+      avatar: avatarMap.get(c.user_id) || null,
     }));
 
-    return NextResponse.json({ post: { ...post, liked }, comments: threaded });
+    const topLevel = commentsWithAvatar.filter((c) => !c.parent_id);
+    const replies = commentsWithAvatar.filter((c) => c.parent_id);
+    const threaded = topLevel.map((c) => ({
+      ...c,
+      replies: replies.filter((r) => r.parent_id === c.id),
+    }));
+
+    return NextResponse.json({
+      post: { ...post, user_avatar: author?.avatar || null, liked },
+      comments: threaded,
+    });
   } catch {
     return NextResponse.json({ error: "获取失败" }, { status: 500 });
   }
 }
 
-// DELETE /api/posts/[id] — delete own post
+// DELETE /api/posts/[id]
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -74,32 +92,22 @@ export async function DELETE(
     const { id } = await params;
     const postId = parseInt(id);
 
-    const authHeader = req.headers.get("authorization");
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    const authUser = await getAuthUser(req);
+    if (!authUser) return NextResponse.json({ error: "请先登录" }, { status: 401 });
 
-    if (!token) {
-      return NextResponse.json({ error: "请先登录" }, { status: 401 });
-    }
+    const { data: post } = await supabaseAdmin
+      .from("posts")
+      .select("id, user_id, image_path")
+      .eq("id", postId)
+      .single();
 
-    const payload = await verifyToken(token);
-
-    const post = db
-      .prepare("SELECT id, user_id, image_path FROM posts WHERE id = ?")
-      .get(postId) as { id: number; user_id: number; image_path: string | null } | undefined;
-
-    if (!post) {
-      return NextResponse.json({ error: "动态不存在" }, { status: 404 });
-    }
-
-    if (post.user_id !== payload.id && payload.role !== "admin") {
+    if (!post) return NextResponse.json({ error: "动态不存在" }, { status: 404 });
+    if (post.user_id !== authUser.id && authUser.role !== "admin") {
       return NextResponse.json({ error: "无权删除" }, { status: 403 });
     }
 
-    if (post.image_path) {
-      await deletePhoto(post.image_path);
-    }
-
-    db.prepare("DELETE FROM posts WHERE id = ?").run(postId);
+    if (post.image_path) await deletePhoto(post.image_path);
+    await supabaseAdmin.from("posts").delete().eq("id", postId);
 
     return NextResponse.json({ success: true });
   } catch {

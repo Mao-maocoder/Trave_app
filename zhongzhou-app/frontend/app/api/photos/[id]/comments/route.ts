@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import db from "@/lib/db";
-import { verifyToken } from "@/lib/auth";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getAuthUser } from "@/lib/api-helpers";
 
-// GET /api/photos/[id]/comments — return nested comments
+// GET /api/photos/[id]/comments
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -10,63 +10,53 @@ export async function GET(
   const { id } = await params;
   const photoId = parseInt(id);
 
-  const allComments = db
-    .prepare(`
-      SELECT c.id, c.photo_id, c.user_id, c.username, c.content, c.parent_id, c.reply_to_username, c.likes, c.created_at,
-             u.avatar
-      FROM comments c
-      LEFT JOIN users u ON c.user_id = u.id
-      WHERE c.photo_id = ?
-      ORDER BY c.created_at ASC
-    `)
-    .all(photoId) as {
-    id: number;
-    photo_id: number;
-    user_id: number;
-    username: string;
-    content: string;
-    parent_id: number | null;
-    reply_to_username: string | null;
-    likes: number;
-    created_at: string;
-    avatar: string | null;
-  }[];
+  const { data: comments } = await supabaseAdmin
+    .from("comments")
+    .select("*")
+    .eq("photo_id", photoId)
+    .order("created_at", { ascending: true });
 
-  // Check if user has liked any comments
-  const authHeader = req.headers.get("authorization");
-  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
-  let likedCommentIds = new Set<number>();
+  const allComments = comments || [];
 
-  if (token) {
-    try {
-      const payload = await verifyToken(token);
-      const liked = db
-        .prepare("SELECT comment_id FROM comment_likes WHERE user_id = ?")
-        .all(payload.id) as { comment_id: number }[];
-      likedCommentIds = new Set(liked.map((l) => l.comment_id));
-    } catch {
-      // ignore
-    }
+  // Fetch avatars for comment authors
+  const userIds = [...new Set(allComments.map((c) => c.user_id))];
+  const avatarMap = new Map<string, string | null>();
+  if (userIds.length > 0) {
+    const { data: users } = await supabaseAdmin
+      .from("users")
+      .select("id, avatar")
+      .in("id", userIds);
+    (users || []).forEach((u) => avatarMap.set(u.id, u.avatar));
   }
 
-  // Build parent username map for backfill
+  const commentsWithAvatar = allComments.map((c) => ({
+    ...c,
+    avatar: avatarMap.get(c.user_id) || null,
+  }));
+
+  // Check liked status
+  const authUser = await getAuthUser(req);
+  const likedCommentIds = new Set<number>();
+  if (authUser) {
+    const { data: likes } = await supabaseAdmin
+      .from("comment_likes")
+      .select("comment_id")
+      .eq("user_id", authUser.id);
+    (likes || []).forEach((l) => likedCommentIds.add(l.comment_id));
+  }
+
+  // Backfill reply_to_username
   const usernameMap = new Map<number, string>();
-  for (const c of allComments) {
-    usernameMap.set(c.id, c.username);
-  }
-
-  // Backfill reply_to_username from parent for old data
-  for (const c of allComments) {
+  for (const c of commentsWithAvatar) usernameMap.set(c.id, c.username);
+  for (const c of commentsWithAvatar) {
     if (c.parent_id && !c.reply_to_username) {
       c.reply_to_username = usernameMap.get(c.parent_id) || null;
     }
   }
 
-  // Build nested structure
-  const topLevel = allComments.filter((c) => !c.parent_id);
-  const repliesMap = new Map<number, typeof allComments>();
-
-  for (const c of allComments) {
+  const topLevel = commentsWithAvatar.filter((c) => !c.parent_id);
+  const repliesMap = new Map<number, typeof commentsWithAvatar>();
+  for (const c of commentsWithAvatar) {
     if (c.parent_id) {
       const replies = repliesMap.get(c.parent_id) || [];
       replies.push(c);
@@ -74,7 +64,7 @@ export async function GET(
     }
   }
 
-  const comments = topLevel.map((c) => ({
+  const nested = topLevel.map((c) => ({
     ...c,
     liked: likedCommentIds.has(c.id),
     replies: (repliesMap.get(c.id) || []).map((r) => ({
@@ -83,10 +73,10 @@ export async function GET(
     })),
   }));
 
-  return NextResponse.json({ comments });
+  return NextResponse.json({ comments: nested });
 }
 
-// POST /api/photos/[id]/comments — add comment or reply
+// POST /api/photos/[id]/comments
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -95,53 +85,54 @@ export async function POST(
     const { id } = await params;
     const photoId = parseInt(id);
 
-    const authHeader = req.headers.get("authorization");
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    const authUser = await getAuthUser(req);
+    if (!authUser) return NextResponse.json({ error: "请先登录" }, { status: 401 });
 
-    if (!token) {
-      return NextResponse.json({ error: "请先登录" }, { status: 401 });
-    }
-
-    const payload = await verifyToken(token);
     const { content, parentId, replyToUsername } = await req.json();
 
     if (!content || content.trim().length === 0) {
       return NextResponse.json({ error: "评论内容不能为空" }, { status: 400 });
     }
-
     if (content.length > 500) {
       return NextResponse.json({ error: "评论不能超过500字" }, { status: 400 });
     }
 
-    const photo = db.prepare("SELECT id FROM photos WHERE id = ?").get(photoId);
-    if (!photo) {
-      return NextResponse.json({ error: "照片不存在" }, { status: 404 });
-    }
+    const { data: photo } = await supabaseAdmin.from("photos").select("id").eq("id", photoId).single();
+    if (!photo) return NextResponse.json({ error: "照片不存在" }, { status: 404 });
 
     let validParentId: number | null = null;
     if (parentId) {
-      const parent = db.prepare("SELECT id FROM comments WHERE id = ? AND photo_id = ?").get(parentId, photoId) as { id: number } | undefined;
-      if (!parent) {
-        return NextResponse.json({ error: "回复的评论不存在" }, { status: 400 });
-      }
-      validParentId = parent.id;
+      const { data: parent } = await supabaseAdmin
+        .from("comments")
+        .select("id")
+        .eq("id", parentId)
+        .eq("photo_id", photoId)
+        .maybeSingle();
+      if (parent) validParentId = parent.id;
     }
 
-    const result = db
-      .prepare("INSERT INTO comments (photo_id, user_id, username, content, parent_id, reply_to_username) VALUES (?, ?, ?, ?, ?, ?)")
-      .run(photoId, payload.id, payload.username, content.trim(), validParentId, replyToUsername || null);
+    const { data: comment, error } = await supabaseAdmin
+      .from("comments")
+      .insert({
+        photo_id: photoId,
+        user_id: authUser.id,
+        username: authUser.username,
+        content: content.trim(),
+        parent_id: validParentId,
+        reply_to_username: replyToUsername || null,
+      })
+      .select("*")
+      .single();
 
-    const comment = db
-      .prepare(`
-        SELECT c.id, c.photo_id, c.user_id, c.username, c.content, c.parent_id, c.reply_to_username, c.likes, c.created_at,
-               u.avatar
-        FROM comments c
-        LEFT JOIN users u ON c.user_id = u.id
-        WHERE c.id = ?
-      `)
-      .get(result.lastInsertRowid);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    return NextResponse.json({ comment });
+    const { data: avatarRow } = await supabaseAdmin
+      .from("users")
+      .select("avatar")
+      .eq("id", authUser.id)
+      .single();
+
+    return NextResponse.json({ comment: { ...comment, avatar: avatarRow?.avatar || null } });
   } catch {
     return NextResponse.json({ error: "评论失败" }, { status: 500 });
   }

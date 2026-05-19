@@ -3,11 +3,12 @@
 import { useState, useRef, FormEvent, DragEvent } from "react";
 import { useLocaleStore } from "@/stores/localeStore";
 import { useAuthStore } from "@/stores/authStore";
+import { CameraIcon } from "@/components/icons";
 import { spots } from "@/lib/spots";
 
 interface UploadModalProps {
   onClose: () => void;
-  onUploaded: () => void;
+  onUploaded: (newAchievements?: string[]) => void;
 }
 
 export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
@@ -61,12 +62,12 @@ export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
         body: formData,
       });
 
+      const data = await res.json();
       if (!res.ok) {
-        const data = await res.json();
         throw new Error(data.error || "Upload failed");
       }
 
-      onUploaded();
+      onUploaded(data.newAchievements);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
@@ -122,10 +123,11 @@ export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
               }}
             />
             {preview ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img src={preview} alt="Preview" className="max-h-48 mx-auto rounded-sm object-contain" />
             ) : (
               <div>
-                <div className="text-3xl mb-2">📷</div>
+                <CameraIcon size={32} className="text-charcoal/30 mx-auto mb-2" />
                 <p className="text-sm text-charcoal/60 font-body">
                   {locale === "zh" ? "拖拽图片到这里，或点击选择" : "Drag image here, or click to select"}
                 </p>

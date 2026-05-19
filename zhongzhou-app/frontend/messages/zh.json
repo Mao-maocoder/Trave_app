@@ -12,10 +12,18 @@
     "voice": "语音助手",
     "itinerary": "行程",
     "community": "社区",
+    "exhibitions": "展览",
+    "handbook": "手册",
     "login": "登录",
     "register": "注册",
     "profile": "个人中心",
-    "admin": "管理后台"
+    "admin": "管理后台",
+    "settings": "设置",
+    "feedback": "反馈",
+    "history": "历史",
+    "shop": "周边",
+    "search": "搜索",
+    "guide": "导览"
   },
   "home": {
     "hero": {
@@ -36,7 +44,9 @@
       "voice": "语音助手",
       "voiceDesc": "AI智能导览",
       "culture": "文化展示",
-      "cultureDesc": "深度文化体验"
+      "cultureDesc": "深度文化体验",
+      "shop": "中轴好物",
+      "shopDesc": "文创周边好物"
     }
   },
   "spots": {
@@ -55,5 +65,47 @@
     "cancel": "取消",
     "confirm": "确认",
     "search": "搜索"
+  },
+  "achievements": {
+    "title": "我的成就",
+    "unlocked": "已解锁",
+    "of": "/",
+    "unlockedLabel": "成就解锁"
+  },
+  "shop": {
+    "title": "中轴好物",
+    "subtitle": "把中轴线的故事带回家",
+    "allCategory": "全部",
+    "addToCart": "加入购物车",
+    "buyNow": "立即购买",
+    "cart": "购物车",
+    "cartEmpty": "购物车是空的",
+    "cartEmptyDesc": "去逛逛中轴好物吧",
+    "total": "合计",
+    "checkout": "去结算",
+    "remove": "移除",
+    "quantity": "数量",
+    "inStock": "有货",
+    "outOfStock": "暂时缺货",
+    "sales": "已售",
+    "rating": "评分",
+    "relatedSpot": "关联景点",
+    "backToShop": "返回商城",
+    "productDetail": "商品详情",
+    "addedToCart": "已加入购物车",
+    "viewCart": "查看购物车",
+    "continueShopping": "继续逛逛"
+  },
+  "chat": {
+    "title": "消息",
+    "newChat": "发起聊天",
+    "searchUser": "搜索用户名...",
+    "noConversations": "还没有聊天记录",
+    "startChat": "发起新聊天",
+    "typeMessage": "输入消息...",
+    "selectConversation": "选择一个会话开始聊天",
+    "noUsers": "没有找到用户",
+    "searching": "搜索中...",
+    "read": "已读"
   }
 }

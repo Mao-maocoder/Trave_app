@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useLocaleStore } from "@/stores/localeStore";
-import { t } from "@/lib/i18n";
+import { spots } from "@/lib/spots";
 
 interface Stop {
   spotId: string;
@@ -13,17 +14,17 @@ interface Stop {
 
 interface ItineraryPlan {
   id: string;
-  icon: string;
   zh: { title: string; subtitle: string; description: string };
   en: { title: string; subtitle: string; description: string };
   stops: Stop[];
   tips: { zh: string[]; en: string[] };
+  accent: string;
 }
 
 const plans: ItineraryPlan[] = [
   {
     id: "classic",
-    icon: "🏯",
+    accent: "cinnabar",
     zh: {
       title: "经典一日游",
       subtitle: "中轴线精华全覆盖",
@@ -49,7 +50,7 @@ const plans: ItineraryPlan[] = [
   },
   {
     id: "halfday",
-    icon: "⛩️",
+    accent: "jade",
     zh: {
       title: "半日精华游",
       subtitle: "核心三景点深度游",
@@ -72,7 +73,7 @@ const plans: ItineraryPlan[] = [
   },
   {
     id: "culture",
-    icon: "🎭",
+    accent: "gold",
     zh: {
       title: "文化深度游",
       subtitle: "两天慢行·沉浸体验",
@@ -98,112 +99,226 @@ const plans: ItineraryPlan[] = [
   },
 ];
 
+const accentColors: Record<string, { bg: string; border: string; text: string; hoverText: string; dot: string; glow: string }> = {
+  cinnabar: { bg: "bg-cinnabar", border: "border-cinnabar", text: "text-cinnabar", hoverText: "hover:text-cinnabar", dot: "bg-cinnabar", glow: "shadow-[0_4px_16px_rgba(194,59,34,0.25)]" },
+  jade: { bg: "bg-jade", border: "border-jade", text: "text-jade", hoverText: "hover:text-jade", dot: "bg-jade", glow: "shadow-[0_4px_16px_rgba(0,128,105,0.2)]" },
+  gold: { bg: "bg-gold", border: "border-gold", text: "text-gold", hoverText: "hover:text-gold", dot: "bg-gold", glow: "shadow-[0_4px_16px_rgba(191,155,68,0.2)]" },
+};
+
 export default function ItineraryPage() {
   const { locale } = useLocaleStore();
   const [activePlan, setActivePlan] = useState(plans[0].id);
 
   const current = plans.find((p) => p.id === activePlan)!;
+  const accent = accentColors[current.accent];
+
+  // Get spot images for the current plan stops
+  const stopImages = current.stops.map((stop) => {
+    const spot = spots.find((s) => s.id === stop.spotId);
+    return spot?.image || null;
+  });
 
   return (
     <div className="relative z-10">
-      {/* Hero */}
-      <section className="relative py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-ink" />
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-1/3 left-1/4 w-[400px] h-[400px] bg-jade/15 rounded-full blur-[100px]" />
-          <div className="absolute bottom-0 right-1/3 w-80 h-80 bg-gold/10 rounded-full blur-[80px]" />
-        </div>
-        <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
-          <div className="seal-stamp text-xs tracking-[0.3em] px-4 py-1.5 mx-auto mb-6 inline-block">
-            {locale === "zh" ? "行程规划" : "ITINERARY"}
+      {/* Hero — layered composition */}
+      <section className="heritage-hero relative h-[58vh] min-h-[440px] overflow-hidden">
+        {/* Background image — first stop's spot image */}
+        {stopImages[0] && (
+          <Image
+            src={stopImages[0]}
+            alt=""
+            fill
+            className="object-cover"
+            quality={85}
+            sizes="100vw"
+            priority
+          />
+        )}
+        {/* Multi-layer overlays */}
+        <div className="absolute inset-0 bg-gradient-to-b from-ink/78 via-ink/58 to-ink/92" />
+        <div className="absolute inset-0 bg-gradient-to-r from-ink/40 to-transparent" />
+        <div className="absolute inset-0 grain-overlay" />
+
+        {/* Content */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
+            {/* Large decorative number */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-display text-[200px] font-bold text-white/[0.03] leading-none select-none pointer-events-none">
+              {String(current.stops.length).padStart(2, "0")}
+            </div>
+
+            <div className="seal-stamp text-xs tracking-[0.3em] px-4 py-1.5 mx-auto mb-6 inline-block">
+              {locale === "zh" ? "行程规划" : "ITINERARY"}
+            </div>
+            <h1 className="font-display font-bold text-5xl md:text-6xl text-white mb-5 tracking-wider">
+              {locale === "zh" ? "行至中轴" : "Walk the Axis"}
+            </h1>
+            <p className="text-white/50 font-body text-base max-w-xl mx-auto leading-relaxed">
+              {locale === "zh"
+                ? "精心规划的游览路线，从半日精华到两日深度，总有一条适合你。"
+                : "Carefully planned routes — from half-day essentials to two-day deep dives."}
+            </p>
+            <div className="mt-8 mx-auto w-24 h-[2px] bg-gradient-to-r from-transparent via-gold to-transparent" />
+
+            {/* Stats row */}
+            <div className="flex items-center justify-center gap-10 mt-8">
+              <div className="text-center">
+                <div className="font-display font-bold text-2xl text-white">{current.stops.length}</div>
+                <div className="text-white/30 text-xs font-display tracking-widest mt-0.5">{locale === "zh" ? "景点" : "STOPS"}</div>
+              </div>
+              <div className="w-px h-8 bg-white/10" />
+              <div className="text-center">
+                <div className="font-display font-bold text-2xl text-white">
+                  {locale === "zh" ? current.zh.subtitle.split("·")[0] : current.en.subtitle.split("·")[0]}
+                </div>
+                <div className="text-white/30 text-xs font-display tracking-widest mt-0.5">{locale === "zh" ? "主题" : "THEME"}</div>
+              </div>
+            </div>
           </div>
-          <h1 className="font-display font-bold text-4xl md:text-5xl text-white mb-4 tracking-wider">
-            {locale === "zh" ? "行至中轴" : "Walk the Axis"}
-          </h1>
-          <p className="text-white/50 font-body text-base max-w-xl mx-auto leading-relaxed">
-            {locale === "zh"
-              ? "精心规划的游览路线，从半日精华到两日深度，总有一条适合你。"
-              : "Carefully planned routes — from half-day essentials to two-day deep dives. Find the perfect walk for you."}
-          </p>
-          <div className="mt-6 mx-auto w-20 h-[2px] bg-gradient-to-r from-transparent via-gold to-transparent" />
         </div>
       </section>
 
-      {/* Plan selector */}
-      <section className="max-w-5xl mx-auto px-4 -mt-6 relative z-20">
-        <div className="flex gap-3 justify-center">
-          {plans.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => setActivePlan(p.id)}
-              className={`flex items-center gap-2 px-5 py-3 rounded-sm text-sm font-display tracking-wider transition-all duration-300 shadow-md ${
-                activePlan === p.id
-                  ? "bg-cinnabar text-white shadow-[0_4px_16px_rgba(194,59,34,0.25)]"
-                  : "bg-white text-charcoal/60 hover:text-cinnabar border border-charcoal/5 hover:border-cinnabar/20"
-              }`}
-            >
-              <span>{p.icon}</span>
-              <span>{locale === "zh" ? p.zh.title : p.en.title}</span>
-            </button>
-          ))}
+      {/* Plan selector — floating cards */}
+      <section className="max-w-4xl mx-auto px-4 -mt-8 relative z-20">
+        <div className="heritage-panel flex gap-3 overflow-x-auto rounded-lg p-2">
+          {plans.map((p) => {
+            const a = accentColors[p.accent];
+            const isActive = activePlan === p.id;
+            return (
+              <button
+                key={p.id}
+                onClick={() => setActivePlan(p.id)}
+                className={`relative flex-1 max-w-[200px] px-5 py-4 rounded-lg text-sm font-display tracking-wider transition-all duration-400 ${
+                  isActive
+                    ? `${a.bg} text-white ${a.glow} scale-[1.02]`
+                    : "bg-white/60 text-charcoal/60 hover:bg-white hover:text-ink border border-charcoal/5"
+                }`}
+              >
+                <div className="font-bold text-base">{locale === "zh" ? p.zh.title : p.en.title}</div>
+                <div className={`text-xs mt-1 ${isActive ? "text-white/70" : "text-charcoal/30"}`}>
+                  {locale === "zh" ? p.zh.subtitle : p.en.subtitle}
+                </div>
+                {isActive && (
+                  <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 bg-inherit" />
+                )}
+              </button>
+            );
+          })}
         </div>
       </section>
 
       {/* Plan content */}
-      <section className="max-w-4xl mx-auto px-4 py-12">
-        {/* Plan header */}
-        <div className="text-center mb-10">
-          <h2 className="font-display font-bold text-2xl text-ink tracking-wider">
-            {locale === "zh" ? current.zh.title : current.en.title}
-          </h2>
-          <p className="text-cinnabar font-display text-sm tracking-widest mt-1">
-            {locale === "zh" ? current.zh.subtitle : current.en.subtitle}
-          </p>
-          <p className="text-charcoal/50 font-body text-sm mt-3 max-w-lg mx-auto">
-            {locale === "zh" ? current.zh.description : current.en.description}
-          </p>
+      <section className="max-w-4xl mx-auto px-4 pt-14 pb-20">
+        {/* Plan header — with spot image mosaic */}
+        <div className="mb-14">
+          <div className="flex items-start gap-8">
+            {/* Left: image collage of first 2 stops */}
+            <div className="hidden md:flex flex-shrink-0 gap-2 w-[280px]">
+              {stopImages.slice(0, 2).map((img, i) => (
+                <div key={i} className={`relative overflow-hidden rounded-lg ${i === 0 ? "flex-1 h-48" : "w-24 h-48"}`}>
+                  {img && (
+                    <Image
+                      src={img}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      quality={80}
+                      sizes="140px"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                  {/* Stop number overlay */}
+                  <div className="absolute bottom-2 left-2">
+                    <span className="font-display font-bold text-white/90 text-3xl">{String(i + 1).padStart(2, "0")}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Right: text */}
+            <div className="flex-1">
+              <h2 className="font-display font-bold text-3xl text-ink tracking-wider">
+                {locale === "zh" ? current.zh.title : current.en.title}
+              </h2>
+              <p className={`${accent.text} font-display text-sm tracking-widest mt-1.5`}>
+                {locale === "zh" ? current.zh.subtitle : current.en.subtitle}
+              </p>
+              <div className={`mt-4 w-12 h-[2px] ${accent.bg}`} />
+              <p className="text-charcoal/50 font-body text-sm mt-4 leading-[1.8] max-w-md">
+                {locale === "zh" ? current.zh.description : current.en.description}
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Route timeline */}
+        {/* Route timeline — refined */}
         <div className="relative">
-          {/* Vertical line */}
-          <div className="absolute left-[28px] top-0 bottom-0 w-[2px] bg-gradient-to-b from-cinnabar/30 via-cinnabar/20 to-transparent" />
+          {/* Vertical line — gradient from accent color */}
+          <div className="absolute left-[29px] top-6 bottom-6 w-[2px] bg-gradient-to-b from-charcoal/10 via-charcoal/8 to-transparent" />
 
-          <div className="space-y-6">
+          <div className="space-y-5">
             {current.stops.map((stop, i) => {
               const s = locale === "zh" ? stop.zh : stop.en;
+              const spot = spots.find((sp) => sp.id === stop.spotId);
+              const isFirst = i === 0;
+              const isLast = i === current.stops.length - 1;
+
               return (
                 <div
                   key={stop.spotId}
-                  className="relative flex items-start gap-5 animate-fade-in-up"
-                  style={{ animationDelay: `${i * 0.08}s` }}
+                  className="relative flex items-start gap-6 animate-fade-in-up group"
+                  style={{ animationDelay: `${i * 0.06}s` }}
                 >
-                  {/* Step number */}
-                  <div className="relative flex-shrink-0 w-14 h-14 flex items-center justify-center">
-                    <div className="w-10 h-10 rounded-full bg-cinnabar/10 border-2 border-cinnabar/30 flex items-center justify-center">
-                      <span className="font-display font-bold text-cinnabar text-sm">
-                        {i + 1}
-                      </span>
+                  {/* Step number — refined circle */}
+                  <div className="relative flex-shrink-0 w-[60px] flex items-center justify-center">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+                      isFirst || isLast
+                        ? `${accent.bg} text-white shadow-lg`
+                        : `bg-white border-2 ${accent.border}/30 ${accent.text}`
+                    }`}>
+                      <span className="font-display font-bold text-sm">{i + 1}</span>
                     </div>
+                    {/* Connector dot for first/last */}
+                    {(isFirst || isLast) && (
+                      <div className={`absolute top-1/2 -translate-y-1/2 ${isFirst ? "-left-1" : "-right-1"} w-2 h-2 rounded-full ${accent.dot} opacity-40`} />
+                    )}
                   </div>
 
-                  {/* Content card */}
-                  <div className="flex-1 bg-white/70 border border-charcoal/5 rounded-sm p-4 hover:border-cinnabar/15 hover:shadow-md transition-all duration-300">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <Link
-                          href={`/spots/${stop.spotId}`}
-                          className="font-display font-bold text-lg text-ink hover:text-cinnabar transition-colors tracking-wide"
-                        >
-                          {s.name}
-                        </Link>
-                        <p className="text-jade font-body text-sm mt-1">
-                          {s.highlight}
-                        </p>
+                  {/* Content card — with spot thumbnail */}
+                  <div className="paper-surface flex-1 rounded-lg p-5 transition-all duration-300 group-hover:translate-x-1">
+                    <div className="flex items-start gap-4">
+                      {/* Spot thumbnail */}
+                      {spot && (
+                        <div className="hidden sm:block flex-shrink-0 w-16 h-16 rounded-md overflow-hidden">
+                          <Image
+                            src={spot.image}
+                            alt={s.name}
+                            width={64}
+                            height={64}
+                            className="w-full h-full object-cover"
+                            quality={75}
+                          />
+                        </div>
+                      )}
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <Link
+                              href={`/spots/${stop.spotId}?from=itinerary`}
+                              className={`font-display font-bold text-lg text-ink transition-colors tracking-wide ${accent.hoverText}`}
+                            >
+                              {s.name}
+                            </Link>
+                            <p className="text-charcoal/40 font-body text-sm mt-1.5 leading-relaxed">
+                              {s.highlight}
+                            </p>
+                          </div>
+                          <span className={`flex-shrink-0 text-xs px-3 py-1.5 ${accent.bg}/5 ${accent.text} border ${accent.border}/10 rounded-md font-display tracking-wider`}>
+                            {s.duration}
+                          </span>
+                        </div>
                       </div>
-                      <span className="flex-shrink-0 text-xs px-2.5 py-1 bg-cinnabar/5 text-cinnabar border border-cinnabar/10 rounded-sm font-display tracking-wider">
-                        {s.duration}
-                      </span>
                     </div>
                   </div>
                 </div>
@@ -212,29 +327,41 @@ export default function ItineraryPage() {
           </div>
         </div>
 
-        {/* Tips */}
-        <div className="mt-12 bg-rice-paper-warm/50 border border-charcoal/5 rounded-sm p-6">
-          <h3 className="font-display font-bold text-sm text-ink tracking-wider mb-4">
-            {locale === "zh" ? "实用贴士" : "Practical Tips"}
-          </h3>
-          <ul className="space-y-2.5">
+        {/* Tips — refined card */}
+        <div className="heritage-panel mt-16 rounded-lg p-7">
+          <div className="flex items-center gap-3 mb-5">
+            <div className={`w-8 h-8 rounded-full ${accent.bg}/10 flex items-center justify-center`}>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className={`w-4 h-4 ${accent.text}`}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+              </svg>
+            </div>
+            <h3 className="font-display font-bold text-sm text-ink tracking-wider">
+              {locale === "zh" ? "实用贴士" : "Practical Tips"}
+            </h3>
+          </div>
+          <div className="grid gap-3">
             {(locale === "zh" ? current.tips.zh : current.tips.en).map((tip, i) => (
-              <li key={i} className="flex items-start gap-2.5">
-                <span className="text-cinnabar text-xs mt-0.5">●</span>
+              <div key={i} className="flex items-start gap-3 py-2">
+                <span className={`font-display font-bold text-xs ${accent.text} mt-0.5 w-5 text-right flex-shrink-0`}>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
                 <span className="text-charcoal/60 font-body text-sm leading-relaxed">
                   {tip}
                 </span>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
 
-        {/* CTA */}
-        <div className="mt-12 text-center">
+        {/* CTA — elevated button */}
+        <div className="mt-14 text-center">
           <Link
             href="/map"
-            className="inline-block px-10 py-3 bg-cinnabar text-white font-display tracking-[0.2em] text-sm hover:bg-cinnabar-deep transition-colors duration-300 rounded-sm shadow-[0_4px_20px_rgba(194,59,34,0.3)]"
+            className={`inline-flex items-center gap-3 rounded-lg px-10 py-3.5 ${accent.bg} text-sm font-display tracking-[0.15em] text-white transition-all duration-300 hover:opacity-90 ${accent.glow}`}
           >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" />
+            </svg>
             {locale === "zh" ? "在地图上查看路线" : "View Route on Map"}
           </Link>
         </div>

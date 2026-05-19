@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
     formats: ["image/webp", "image/avif"],
     deviceSizes: [640, 1080, 1920],
     qualities: [75, 85, 90],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "pptehcknplnygcivgyel.supabase.co",
+      },
+    ],
   },
 };
 

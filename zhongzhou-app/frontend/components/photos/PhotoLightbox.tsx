@@ -6,10 +6,11 @@ import { useLocaleStore } from "@/stores/localeStore";
 import { spots } from "@/lib/spots";
 import { formatRelativeTime } from "@/lib/utils";
 import ConfirmModal from "@/components/ui/ConfirmModal";
+import { DeleteIcon, ChatIcon, CancelIcon, DownloadIcon, LikeIcon } from "@/components/icons";
 
 interface Photo {
   id: number;
-  user_id: number;
+  user_id: string;
   username: string;
   user_avatar: string | null;
   image_path: string;
@@ -22,7 +23,7 @@ interface Photo {
 
 interface Comment {
   id: number;
-  user_id: number;
+  user_id: string;
   username: string;
   avatar: string | null;
   content: string;
@@ -38,7 +39,7 @@ interface PhotoLightboxProps {
   photo: Photo;
   liked: boolean;
   isOwner: boolean;
-  currentUserId: number | null;
+  currentUserId: string | null;
   token: string | null;
   onLike: () => void;
   onDelete: () => void;
@@ -59,7 +60,7 @@ export default function PhotoLightbox({
 }: PhotoLightboxProps) {
   const { locale } = useLocaleStore();
   const [comments, setComments] = useState<Comment[]>([]);
-  const [showComments, setShowComments] = useState(true);
+  const [showComments, setShowComments] = useState(true); // eslint-disable-line @typescript-eslint/no-unused-vars
   const [showInput, setShowInput] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [replyTo, setReplyTo] = useState<number | null>(null);
@@ -336,7 +337,7 @@ export default function PhotoLightbox({
                 className="w-8 h-8 flex items-center justify-center bg-black/50 hover:bg-black/70 text-white/80 hover:text-white rounded-sm transition-colors text-sm backdrop-blur-sm"
                 title={locale === "zh" ? "下载" : "Download"}
               >
-                ↓
+                <DownloadIcon size={14} />
               </button>
             </div>
 
@@ -375,14 +376,14 @@ export default function PhotoLightbox({
                     className="w-7 h-7 flex items-center justify-center text-charcoal/30 hover:text-cinnabar hover:bg-cinnabar/5 rounded-sm transition-colors text-sm"
                     title={locale === "zh" ? "删除" : "Delete"}
                   >
-                    🗑
+                    <DeleteIcon size={14} />
                   </button>
                 )}
                 <button
                   onClick={onClose}
                   className="w-7 h-7 flex items-center justify-center text-charcoal/40 hover:text-ink hover:bg-charcoal/5 rounded-sm transition-colors"
                 >
-                  x
+                  <CancelIcon size={14} />
                 </button>
               </div>
             </div>
@@ -400,7 +401,7 @@ export default function PhotoLightbox({
                 </p>
               )}
               <p className="text-xs text-charcoal/30 font-body mt-2">
-                {new Date(photo.created_at).toLocaleString()}
+                {formatRelativeTime(photo.created_at, locale)}
               </p>
 
               {/* Comments panel — always visible */}
@@ -443,7 +444,7 @@ export default function PhotoLightbox({
                     liked ? "text-cinnabar scale-105" : "text-charcoal/40 hover:text-cinnabar"
                   }`}
                 >
-                  <span className="text-lg">{liked ? "❤" : "♡"}</span>
+                  <LikeIcon size={18} filled={liked} />
                   <span className="text-sm font-body">{photo.likes}</span>
                 </button>
                 <button
@@ -452,7 +453,7 @@ export default function PhotoLightbox({
                     showInput ? "text-cinnabar" : "text-charcoal/40 hover:text-cinnabar"
                   }`}
                 >
-                  <span className="text-lg">💬</span>
+                  <ChatIcon size={18} />
                   <span className="text-sm font-body">{getTotalCommentCount() || photo.comment_count}</span>
                 </button>
               </div>
@@ -469,7 +470,7 @@ export default function PhotoLightbox({
                         onClick={handleCancelReply}
                         className="text-xs text-charcoal/30 hover:text-cinnabar"
                       >
-                        x
+                        <CancelIcon size={12} />
                       </button>
                     </div>
                   )}
@@ -536,7 +537,7 @@ function CommentItem({
   locale: string;
   token: string | null;
   tick: number;
-  currentUserId: number | null;
+  currentUserId: string | null;
   isPhotoOwner: boolean;
   expanded: boolean;
   onReply: (id: number, username: string) => void;
@@ -579,7 +580,7 @@ function CommentItem({
                   comment.liked ? "text-cinnabar" : "text-charcoal/30 hover:text-cinnabar"
                 }`}
               >
-                <span>{comment.liked ? "❤" : "♡"}</span>
+                <LikeIcon size={14} filled={comment.liked} />
                 {comment.likes > 0 && <span className="font-body">{comment.likes}</span>}
               </button>
               {token && (
@@ -596,7 +597,7 @@ function CommentItem({
                   className="text-xs text-charcoal/20 hover:text-cinnabar transition-colors font-body"
                   title={locale === "zh" ? "删除" : "Delete"}
                 >
-                  ✕
+                  <DeleteIcon size={12} />
                 </button>
               )}
             </div>
@@ -645,7 +646,7 @@ function ReplyItem({
   reply,
   locale,
   token,
-  tick,
+  tick: _tick,
   parentId,
   currentUserId,
   isPhotoOwner,
@@ -658,7 +659,7 @@ function ReplyItem({
   token: string | null;
   tick: number;
   parentId: number;
-  currentUserId: number | null;
+  currentUserId: string | null;
   isPhotoOwner: boolean;
   onReply: (id: number, username: string) => void;
   onLike: (id: number) => void;
@@ -702,7 +703,7 @@ function ReplyItem({
                 reply.liked ? "text-cinnabar" : "text-charcoal/30 hover:text-cinnabar"
               }`}
             >
-              <span>{reply.liked ? "❤" : "♡"}</span>
+              <LikeIcon size={14} filled={reply.liked} />
               {reply.likes > 0 && <span className="font-body">{reply.likes}</span>}
             </button>
             {token && (
@@ -719,7 +720,7 @@ function ReplyItem({
                 className="text-xs text-charcoal/20 hover:text-cinnabar transition-colors font-body"
                 title={locale === "zh" ? "删除" : "Delete"}
               >
-                ✕
+                <DeleteIcon size={12} />
               </button>
             )}
           </div>

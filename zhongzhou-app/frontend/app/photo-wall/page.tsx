@@ -5,14 +5,17 @@ import Image from "next/image";
 import { useLocaleStore } from "@/stores/localeStore";
 import { useAuthStore } from "@/stores/authStore";
 import { t } from "@/lib/i18n";
+import { formatRelativeTime } from "@/lib/utils";
 import { spots } from "@/lib/spots";
 import UploadModal from "@/components/photos/UploadModal";
 import PhotoLightbox from "@/components/photos/PhotoLightbox";
 import ConfirmModal from "@/components/ui/ConfirmModal";
+import AchievementToast from "@/components/achievements/AchievementToast";
+import { ChatIcon, LikeIcon, CameraIcon } from "@/components/icons";
 
 interface Photo {
   id: number;
-  user_id: number;
+  user_id: string;
   username: string;
   user_avatar: string | null;
   image_path: string;
@@ -20,6 +23,7 @@ interface Photo {
   caption: string | null;
   likes: number;
   comment_count: number;
+  liked?: boolean;
   created_at: string;
 }
 
@@ -36,6 +40,7 @@ export default function PhotoWallPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [newAchievements, setNewAchievements] = useState<string[]>([]);
 
   const fetchPhotos = useCallback(async () => {
     setLoading(true);
@@ -44,8 +49,10 @@ export default function PhotoWallPage() {
       if (filterSpot) params.set("spotId", filterSpot);
       const res = await fetch(`/api/photos?${params}`);
       const data = await res.json();
-      setPhotos(data.photos);
-      setTotalPages(data.totalPages);
+      const nextPhotos = data.photos || [];
+      setPhotos(nextPhotos);
+      setLikedPhotos(new Set(nextPhotos.filter((p: Photo) => p.liked).map((p: Photo) => p.id)));
+      setTotalPages(data.totalPages || 0);
     } catch {
       // ignore
     } finally {
@@ -53,9 +60,11 @@ export default function PhotoWallPage() {
     }
   }, [page, filterSpot]);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     fetchPhotos();
   }, [fetchPhotos]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleLike = async (photoId: number) => {
     if (!token) return;
@@ -126,16 +135,18 @@ export default function PhotoWallPage() {
   return (
     <div className="relative z-10">
       {/* Header */}
-      <section className="max-w-7xl mx-auto px-4 pt-10 pb-6">
-        <div className="flex items-center justify-between">
+      <section className="heritage-hero">
+        <div className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-4 py-14">
           <div>
-            <div className="seal-stamp text-xs tracking-[0.3em] w-fit px-3 py-1 mb-3">
+            <div className="seal-stamp text-xs tracking-[0.3em] w-fit px-3 py-1 mb-4">
               {locale === "zh" ? "照片墙" : "PHOTO WALL"}
             </div>
-            <h1 className="font-display font-bold text-3xl text-ink tracking-wide">
+            <h1 className="font-display font-bold text-4xl text-white tracking-wide md:text-5xl">
               {t(locale, "nav.photoWall")}
             </h1>
-            <div className="mt-3 w-16 h-[2px] bg-gradient-to-r from-cinnabar via-gold to-transparent" />
+            <p className="mt-3 max-w-xl text-sm leading-7 text-white/58">
+              {locale === "zh" ? "收集旅途中的光影、建筑细节和中轴线记忆。" : "Collect light, architecture details, and memories along the Central Axis."}
+            </p>
           </div>
 
           {user && (
@@ -150,8 +161,8 @@ export default function PhotoWallPage() {
       </section>
 
       {/* Filter */}
-      <section className="max-w-7xl mx-auto px-4 pb-8">
-        <div className="flex items-center gap-3">
+      <section className="relative z-20 max-w-7xl mx-auto px-4 pt-6 pb-8">
+        <div className="heritage-panel chip-scroll flex items-center gap-3 overflow-x-auto rounded-lg p-3">
           <span className="text-sm text-charcoal/60 font-display tracking-wider">
             {locale === "zh" ? "筛选：" : "Filter:"}
           </span>
@@ -160,7 +171,7 @@ export default function PhotoWallPage() {
             className={`px-3 py-1.5 text-xs font-display tracking-wider rounded-sm transition-colors ${
               filterSpot === ""
                 ? "bg-cinnabar text-white"
-                : "bg-charcoal/5 text-charcoal/60 hover:text-cinnabar"
+                : "bg-white/50 text-charcoal/60 hover:text-cinnabar"
             }`}
           >
             {locale === "zh" ? "全部" : "All"}
@@ -172,7 +183,7 @@ export default function PhotoWallPage() {
               className={`px-3 py-1.5 text-xs font-display tracking-wider rounded-sm transition-colors ${
                 filterSpot === s.id
                   ? "bg-cinnabar text-white"
-                  : "bg-charcoal/5 text-charcoal/60 hover:text-cinnabar"
+                : "bg-white/50 text-charcoal/60 hover:text-cinnabar"
               }`}
             >
               {s.name[locale]}
@@ -189,7 +200,7 @@ export default function PhotoWallPage() {
           </div>
         ) : photos.length === 0 ? (
           <div className="text-center py-20">
-            <div className="text-4xl mb-4">📷</div>
+            <CameraIcon size={48} className="text-charcoal/30 mx-auto mb-4" />
             <p className="text-charcoal/40 font-body">
               {locale === "zh" ? "还没有照片，快来上传第一张吧！" : "No photos yet. Be the first to upload!"}
             </p>
@@ -199,7 +210,7 @@ export default function PhotoWallPage() {
             {photos.map((photo) => (
               <div
                 key={photo.id}
-                className="group bg-white rounded-sm overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-charcoal/5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.1)] transition-all duration-400 cursor-pointer"
+                className="paper-surface group cursor-pointer overflow-hidden rounded-lg transition-all duration-400"
                 onClick={() => setSelectedPhoto(photo)}
               >
                 {/* Image */}
@@ -245,18 +256,18 @@ export default function PhotoWallPage() {
 
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-charcoal/30 font-body">
-                      {new Date(photo.created_at).toLocaleDateString()}
+                      {formatRelativeTime(photo.created_at, locale)}
                     </span>
                     <div className="flex items-center gap-3">
                       <button
                         onClick={(e) => { e.stopPropagation(); handleLike(photo.id); }}
                         className="flex items-center gap-1 text-sm text-charcoal/40 hover:text-cinnabar transition-colors"
                       >
-                        <span>❤</span>
+                        <LikeIcon size={14} filled className="text-cinnabar" />
                         <span className="font-body">{photo.likes}</span>
                       </button>
                       <span className="flex items-center gap-1 text-sm text-charcoal/30">
-                        <span>💬</span>
+                        <span className="inline-flex items-center justify-center w-4 h-4"><ChatIcon size={14} /></span>
                         <span className="font-body">{photo.comment_count}</span>
                       </span>
                     </div>
@@ -291,12 +302,17 @@ export default function PhotoWallPage() {
       {showUpload && (
         <UploadModal
           onClose={() => setShowUpload(false)}
-          onUploaded={() => {
+          onUploaded={(achievements) => {
             setShowUpload(false);
             setPage(1);
             fetchPhotos();
+            if (achievements?.length) setNewAchievements(achievements);
           }}
         />
+      )}
+
+      {newAchievements.length > 0 && (
+        <AchievementToast achievementIds={newAchievements} onDone={() => setNewAchievements([])} />
       )}
 
       {/* Photo Lightbox */}

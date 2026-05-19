@@ -19,8 +19,8 @@
 
   --background: var(--rice-paper);
   --foreground: var(--ink);
-  --font-display: 'Noto Serif SC', 'Playfair Display', serif;
-  --font-body: 'Noto Serif SC', Georgia, serif;
+  --font-display: "Noto Serif SC", "Songti SC", "SimSun", "STSong", Georgia, "Playfair Display", serif;
+  --font-body: "Noto Serif SC", "Songti SC", "SimSun", "STSong", Georgia, serif;
 }
 
 @theme inline {
@@ -46,11 +46,15 @@
 
 /* === Base === */
 body {
-  background: var(--rice-paper);
+  background:
+    linear-gradient(135deg, rgba(245, 240, 232, 0.98) 0%, rgba(237, 229, 213, 0.92) 48%, rgba(201, 169, 78, 0.16) 100%),
+    var(--rice-paper);
   color: var(--ink);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  position: relative;
+  overflow-x: hidden;
 }
 
 /* === Ink Wash Texture Background === */
@@ -61,9 +65,33 @@ body::before {
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(ellipse at 20% 50%, rgba(194, 59, 34, 0.03) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(90, 124, 111, 0.04) 0%, transparent 40%),
-    radial-gradient(ellipse at 50% 80%, rgba(201, 169, 78, 0.03) 0%, transparent 45%);
+    linear-gradient(90deg, transparent 0%, rgba(26, 26, 26, 0.035) 50%, transparent 100%),
+    radial-gradient(ellipse at 16% 48%, rgba(194, 59, 34, 0.04) 0%, transparent 45%),
+    radial-gradient(ellipse at 86% 18%, rgba(90, 124, 111, 0.055) 0%, transparent 42%),
+    url('/images/textures/ink-bg-light.png');
+  background-size: 100% 100%, 100% 100%, 100% 100%, cover;
+  background-position: center;
+  opacity: 0.52;
+  mix-blend-mode: multiply;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(194, 59, 34, 0.08) 18%,
+    rgba(201, 169, 78, 0.22) 50%,
+    rgba(194, 59, 34, 0.08) 82%,
+    transparent
+  );
 }
 
 /* === Scrollbar === */
@@ -218,6 +246,19 @@ body::before {
   opacity: 0.4;
 }
 
+/* === Cart bounce animation === */
+@keyframes cartBounce {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.25); }
+  50% { transform: scale(0.9); }
+  70% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.cart-bounce {
+  animation: cartBounce 0.4s ease-out;
+}
+
 /* === Brush stroke decorative line === */
 .brush-line {
   position: relative;
@@ -266,7 +307,7 @@ body::before {
 }
 .card-lift:hover {
   transform: translateY(-6px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(194, 59, 34, 0.08);
+  box-shadow: 0 22px 50px rgba(26, 26, 26, 0.12), 0 10px 20px rgba(194, 59, 34, 0.08);
 }
 
 /* === Gold accent border === */
@@ -300,4 +341,110 @@ body::before {
   z-index: 1;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
   mix-blend-mode: overlay;
+}
+
+/* === Premium travel surfaces === */
+.paper-surface {
+  background:
+    linear-gradient(180deg, rgba(255, 253, 247, 0.9), rgba(245, 240, 232, 0.84)),
+    rgba(255, 253, 247, 0.72);
+  border: 1px solid rgba(26, 26, 26, 0.08);
+  box-shadow: 0 18px 44px rgba(26, 26, 26, 0.08);
+  backdrop-filter: blur(14px);
+}
+
+.ink-band {
+  background:
+    linear-gradient(135deg, rgba(26, 26, 26, 0.96), rgba(58, 58, 58, 0.88)),
+    url('/images/textures/ink-bg.png');
+  background-size: cover;
+  background-position: center;
+}
+
+.axis-hairline {
+  position: relative;
+}
+
+.axis-hairline::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(201, 169, 78, 0.52), transparent);
+  transform: translateX(-50%);
+}
+
+.section-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--cinnabar);
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  letter-spacing: 0;
+}
+
+.section-kicker::before,
+.section-kicker::after {
+  content: '';
+  width: 2rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(194, 59, 34, 0.55));
+}
+
+.section-kicker::after {
+  background: linear-gradient(90deg, rgba(194, 59, 34, 0.55), transparent);
+}
+
+.nav-surface {
+  background:
+    linear-gradient(180deg, rgba(245, 240, 232, 0.94), rgba(245, 240, 232, 0.84)),
+    url('/images/textures/ink-bg-light.png');
+  background-size: cover;
+  border-bottom: 1px solid rgba(26, 26, 26, 0.08);
+  box-shadow: 0 10px 36px rgba(26, 26, 26, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.nav-transparent {
+  background: linear-gradient(180deg, rgba(26, 26, 26, 0.5), transparent);
+}
+
+.heritage-hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, rgba(26, 26, 26, 0.96), rgba(58, 58, 58, 0.88)),
+    url('/images/textures/ink-bg.png');
+  background-size: cover;
+  background-position: center;
+}
+
+.heritage-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(194, 59, 34, 0.18), transparent 34%, rgba(201, 169, 78, 0.12)),
+    linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.22));
+  pointer-events: none;
+}
+
+.heritage-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 253, 247, 0.88), rgba(245, 240, 232, 0.78)),
+    url('/images/textures/ink-bg-light.png');
+  background-size: cover;
+  border: 1px solid rgba(26, 26, 26, 0.08);
+  box-shadow: 0 16px 42px rgba(26, 26, 26, 0.075);
+}
+
+.chip-scroll {
+  scrollbar-width: none;
+}
+
+.chip-scroll::-webkit-scrollbar {
+  display: none;
 }

@@ -8,11 +8,12 @@ import { useLocaleStore } from "@/stores/localeStore";
 import { useAuthStore } from "@/stores/authStore";
 import { formatRelativeTime } from "@/lib/utils";
 import ConfirmModal from "@/components/ui/ConfirmModal";
+import { ReturnIcon, DeleteIcon, ChatIcon, CancelIcon, LikeIcon } from "@/components/icons";
 
 interface PostComment {
   id: number;
   post_id: number;
-  user_id: number;
+  user_id: string;
   username: string;
   avatar: string | null;
   content: string;
@@ -24,7 +25,7 @@ interface PostComment {
 
 interface Post {
   id: number;
-  user_id: number;
+  user_id: string;
   username: string;
   user_avatar: string | null;
   content: string;
@@ -57,7 +58,7 @@ export default function PostDetailPage() {
       if (!res.ok) return;
       const data = await res.json();
       setPost(data.post);
-      setComments(data.comments);
+      setComments(data.comments || []);
     } catch {
       // ignore
     } finally {
@@ -65,6 +66,7 @@ export default function PostDetailPage() {
     }
   }, [params.id, token]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleLike = async () => {
@@ -146,7 +148,7 @@ export default function PostDetailPage() {
         <div className="text-center">
           <p className="text-charcoal/40 font-body mb-4">{locale === "zh" ? "动态不存在" : "Post not found"}</p>
           <Link href="/community" className="text-cinnabar hover:text-cinnabar-deep font-display text-sm tracking-wider">
-            ← {locale === "zh" ? "返回社区" : "Back to Community"}
+            <ReturnIcon size={16} className="inline-block align-middle mr-0.5" /> {locale === "zh" ? "返回社区" : "Back to Community"}
           </Link>
         </div>
       </div>
@@ -161,7 +163,7 @@ export default function PostDetailPage() {
           href="/community"
           className="inline-flex items-center gap-2 text-charcoal/50 hover:text-cinnabar text-sm mb-8 font-body transition-colors"
         >
-          <span className="text-lg">←</span>
+          <ReturnIcon size={20} />
           {locale === "zh" ? "返回社区" : "Back"}
         </Link>
 
@@ -193,7 +195,7 @@ export default function PostDetailPage() {
                 className="text-charcoal/20 hover:text-cinnabar transition-colors text-sm"
                 title={locale === "zh" ? "删除" : "Delete"}
               >
-                ✕
+                <DeleteIcon size={14} />
               </button>
             )}
           </div>
@@ -206,7 +208,7 @@ export default function PostDetailPage() {
           {/* Image */}
           {post.image_path && (
             <div className="px-6 pb-4">
-              <img src={post.image_path} alt="" className="max-h-[500px] rounded-sm border border-charcoal/5 object-cover w-full" />
+              <Image src={post.image_path} alt="" width={800} height={500} className="max-h-[500px] rounded-sm border border-charcoal/5 object-cover w-full h-auto" />
             </div>
           )}
 
@@ -218,11 +220,11 @@ export default function PostDetailPage() {
                 post.liked ? "text-cinnabar" : "text-charcoal/30 hover:text-cinnabar"
               }`}
             >
-              <span className="text-base">{post.liked ? "❤" : "♡"}</span>
+              <LikeIcon size={16} filled={post.liked} />
               <span className="font-body">{post.likes || ""}</span>
             </button>
             <span className="flex items-center gap-1.5 text-sm text-charcoal/30">
-              <span className="text-base">💬</span>
+              <ChatIcon size={16} />
               <span className="font-body">{post.comment_count}</span>
             </span>
           </div>
@@ -317,7 +319,7 @@ export default function PostDetailPage() {
                   <span className="text-xs text-charcoal/40 font-body">
                     {locale === "zh" ? `回复 @${replyTo.username}` : `Replying to @${replyTo.username}`}
                   </span>
-                  <button onClick={() => setReplyTo(null)} className="text-xs text-charcoal/30 hover:text-cinnabar">✕</button>
+                  <button onClick={() => setReplyTo(null)} className="text-xs text-charcoal/30 hover:text-cinnabar"><CancelIcon size={12} /></button>
                 </div>
               )}
               <div className="flex items-start gap-3">

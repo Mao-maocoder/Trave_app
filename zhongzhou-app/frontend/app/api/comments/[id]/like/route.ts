@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import db from "@/lib/db";
-import { verifyToken } from "@/lib/auth";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getAuthUser } from "@/lib/api-helpers";
 
 // POST /api/comments/[id]/like — toggle like
 export async function POST(
@@ -11,34 +11,31 @@ export async function POST(
     const { id } = await params;
     const commentId = parseInt(id);
 
-    const authHeader = req.headers.get("authorization");
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    const authUser = await getAuthUser(req);
+    if (!authUser) return NextResponse.json({ error: "请先登录" }, { status: 401 });
 
-    if (!token) {
-      return NextResponse.json({ error: "请先登录" }, { status: 401 });
-    }
+    const { data: comment } = await supabaseAdmin
+      .from("comments")
+      .select("id, likes")
+      .eq("id", commentId)
+      .single();
 
-    const payload = await verifyToken(token);
+    if (!comment) return NextResponse.json({ error: "评论不存在" }, { status: 404 });
 
-    const comment = db.prepare("SELECT id, likes FROM comments WHERE id = ?").get(commentId) as
-      | { id: number; likes: number }
-      | undefined;
-
-    if (!comment) {
-      return NextResponse.json({ error: "评论不存在" }, { status: 404 });
-    }
-
-    const existing = db
-      .prepare("SELECT * FROM comment_likes WHERE user_id = ? AND comment_id = ?")
-      .get(payload.id, commentId) as { user_id: number; comment_id: number } | undefined;
+    const { data: existing } = await supabaseAdmin
+      .from("comment_likes")
+      .select("comment_id")
+      .eq("user_id", authUser.id)
+      .eq("comment_id", commentId)
+      .maybeSingle();
 
     if (existing) {
-      db.prepare("DELETE FROM comment_likes WHERE user_id = ? AND comment_id = ?").run(payload.id, commentId);
-      db.prepare("UPDATE comments SET likes = MAX(0, likes - 1) WHERE id = ?").run(commentId);
+      await supabaseAdmin.from("comment_likes").delete().eq("user_id", authUser.id).eq("comment_id", commentId);
+      await supabaseAdmin.from("comments").update({ likes: Math.max(0, comment.likes - 1) }).eq("id", commentId);
       return NextResponse.json({ liked: false, likes: comment.likes - 1 });
     } else {
-      db.prepare("INSERT INTO comment_likes (user_id, comment_id) VALUES (?, ?)").run(payload.id, commentId);
-      db.prepare("UPDATE comments SET likes = likes + 1 WHERE id = ?").run(commentId);
+      await supabaseAdmin.from("comment_likes").insert({ user_id: authUser.id, comment_id: commentId });
+      await supabaseAdmin.from("comments").update({ likes: comment.likes + 1 }).eq("id", commentId);
       return NextResponse.json({ liked: true, likes: comment.likes + 1 });
     }
   } catch {
