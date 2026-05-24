@@ -75,7 +75,12 @@ export async function GET(
     }));
 
     return NextResponse.json({
-      post: { ...post, user_avatar: author?.avatar || null, liked },
+      post: {
+        ...post,
+        user_avatar: author?.avatar || null,
+        liked,
+        comment_count: allComments.length,
+      },
       comments: threaded,
     });
   } catch {
